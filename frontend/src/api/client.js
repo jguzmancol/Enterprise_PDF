@@ -8,8 +8,11 @@ export async function uploadFiles(files) {
         throw new Error(await res.text());
     return res.json();
 }
-export function previewUrl(fileId, page) {
-    return `${BASE}/preview/${fileId}/${page}`;
+export function previewUrl(fileId, page, width) {
+    let url = `${BASE}/preview/${fileId}/${page}`;
+    if (width)
+        url += `?w=${width}`;
+    return url;
 }
 async function post(url, body) {
     const res = await fetch(url, {

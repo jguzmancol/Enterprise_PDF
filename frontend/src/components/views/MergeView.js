@@ -76,7 +76,7 @@ export default function MergeView({ files, thumbnailSize }) {
     const getPreviewSrc = (fileId, page) => {
         const key = `${fileId}-${page}`;
         const v = pageVersions[key] ?? 0;
-        return `${previewUrl(fileId, page)}?v=${v}`;
+        return `${previewUrl(fileId, page, thumbnailSize)}&v=${v}`;
     };
     const handleMerge = async () => {
         setLoading(true);

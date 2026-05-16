@@ -99,7 +99,7 @@ export default function MergeView({ files, thumbnailSize }: Props) {
   const getPreviewSrc = (fileId: string, page: number) => {
     const key = `${fileId}-${page}`;
     const v = pageVersions[key] ?? 0;
-    return `${previewUrl(fileId, page)}?v=${v}`;
+    return `${previewUrl(fileId, page, thumbnailSize)}&v=${v}`;
   };
 
   const handleMerge = async () => {

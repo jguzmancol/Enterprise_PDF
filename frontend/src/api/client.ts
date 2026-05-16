@@ -10,8 +10,10 @@ export async function uploadFiles(files: FileList | File[]) {
   return res.json() as Promise<import("../types").UploadResponse>;
 }
 
-export function previewUrl(fileId: string, page: number) {
-  return `${BASE}/preview/${fileId}/${page}`;
+export function previewUrl(fileId: string, page: number, width?: number) {
+  let url = `${BASE}/preview/${fileId}/${page}`;
+  if (width) url += `?w=${width}`;
+  return url;
 }
 
 async function post<T>(url: string, body: unknown) {

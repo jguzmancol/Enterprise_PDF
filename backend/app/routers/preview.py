@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 
 from app.services.file_service import get_upload_path
@@ -8,14 +8,14 @@ router = APIRouter()
 
 
 @router.get("/preview/{file_id}/{page}")
-async def preview_page(file_id: str, page: int):
+async def preview_page(file_id: str, page: int, w: int = Query(None, ge=1)):
     if page < 1:
         raise HTTPException(status_code=400, detail="Page must be >= 1")
     path = get_upload_path(file_id)
     if not path:
         raise HTTPException(status_code=404, detail="File not found")
     try:
-        png_data = render_page(path, page - 1)
+        png_data = render_page(path, page - 1, width=w)
         return Response(
             content=png_data,
             media_type="image/png",

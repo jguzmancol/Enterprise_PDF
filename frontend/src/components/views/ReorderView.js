@@ -70,7 +70,7 @@ export default function ReorderView({ files, removeFile, thumbnailSize }) {
             return "";
         const key = `${selectedId}-${pageNum}`;
         const v = pageVersions[key] ?? 0;
-        return `${previewUrl(selectedId, pageNum)}?v=${v}`;
+        return `${previewUrl(selectedId, pageNum, thumbnailSize)}&v=${v}`;
     };
     const handleReorder = async () => {
         if (!selectedId)
