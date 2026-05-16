@@ -5,6 +5,7 @@ import PreviewImage from "../PreviewImage";
 
 interface Props {
   files: FileInfo[];
+  thumbnailSize?: number;
 }
 
 interface PageEntry {
@@ -13,7 +14,7 @@ interface PageEntry {
   fileName: string;
 }
 
-export default function MergeView({ files }: Props) {
+export default function MergeView({ files, thumbnailSize }: Props) {
   const [loading, setLoading] = useState(false);
   const [downloadId, setDownloadId] = useState<string | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -171,7 +172,7 @@ export default function MergeView({ files }: Props) {
                   <PreviewImage
                     src={getPreviewSrc(entry.fileId, entry.page)}
                     alt={`${entry.fileName} - page ${entry.page}`}
-                    className="aspect-[3/4] w-full"
+                    size={thumbnailSize}
                   />
                   <button
                     onClick={(e) => {

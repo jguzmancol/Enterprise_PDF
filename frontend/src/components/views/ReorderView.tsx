@@ -7,9 +7,10 @@ import PreviewImage from "../PreviewImage";
 interface Props {
   files: FileInfo[];
   removeFile: (id: string) => void;
+  thumbnailSize?: number;
 }
 
-export default function ReorderView({ files, removeFile }: Props) {
+export default function ReorderView({ files, removeFile, thumbnailSize }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [order, setOrder] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
@@ -180,7 +181,7 @@ export default function ReorderView({ files, removeFile }: Props) {
                     <PreviewImage
                       src={getPreviewSrc(pageNum)}
                       alt={`Page ${pageNum}`}
-                      className="aspect-[3/4] w-full"
+                      size={thumbnailSize}
                     />
                     <button
                       onClick={(e) => {

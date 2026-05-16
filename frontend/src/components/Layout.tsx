@@ -10,6 +10,8 @@ interface Props {
   onUpload: (files: FileList | File[]) => void;
   error: string | null;
   onClearFiles: () => void;
+  thumbnailSize: number;
+  onThumbnailSizeChange: (size: number) => void;
   children: ReactNode;
 }
 
@@ -18,6 +20,8 @@ export default function Layout({
   onUpload,
   error,
   onClearFiles,
+  thumbnailSize,
+  onThumbnailSizeChange,
   children,
 }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -68,6 +72,25 @@ export default function Layout({
                 {error}
               </div>
             )}
+
+            <div className="mt-4 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+              <span>Previews:</span>
+              <button
+                onClick={() => onThumbnailSizeChange(Math.max(50, thumbnailSize - 10))}
+                disabled={thumbnailSize <= 50}
+                className="w-6 h-6 flex items-center justify-center rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
+              >
+                &minus;
+              </button>
+              <span className="w-8 text-center text-xs font-mono">{thumbnailSize}</span>
+              <button
+                onClick={() => onThumbnailSizeChange(Math.min(250, thumbnailSize + 10))}
+                disabled={thumbnailSize >= 250}
+                className="w-6 h-6 flex items-center justify-center rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
+              >
+                +
+              </button>
+            </div>
           </div>
         </aside>
 

@@ -7,9 +7,10 @@ import PreviewImage from "../PreviewImage";
 interface Props {
   files: FileInfo[];
   removeFile: (id: string) => void;
+  thumbnailSize?: number;
 }
 
-export default function SplitView({ files, removeFile }: Props) {
+export default function SplitView({ files, removeFile, thumbnailSize }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [rangesText, setRangesText] = useState("");
   const [filename, setFilename] = useState("");
@@ -143,7 +144,7 @@ export default function SplitView({ files, removeFile }: Props) {
                     <PreviewImage
                       src={getPreviewSrc(pageNum)}
                       alt={`Page ${pageNum}`}
-                      className="aspect-[3/4] w-full"
+                      size={thumbnailSize}
                     />
                     <span
                       onClick={(e) => {

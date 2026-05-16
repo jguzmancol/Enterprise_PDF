@@ -4,9 +4,10 @@ interface Props {
   src: string;
   alt: string;
   className?: string;
+  size?: number;
 }
 
-export default function PreviewImage({ src, alt, className = "" }: Props) {
+export default function PreviewImage({ src, alt, className = "", size }: Props) {
   const [loaded, setLoaded] = useState(false);
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -27,8 +28,16 @@ export default function PreviewImage({ src, alt, className = "" }: Props) {
     return () => obs.disconnect();
   }, []);
 
+  const wrapperStyle = size
+    ? { width: size, height: Math.round(size * 4 / 3), minWidth: size }
+    : undefined;
+
   return (
-    <div ref={ref} className={className}>
+    <div
+      ref={ref}
+      className={className}
+      style={wrapperStyle}
+    >
       {visible ? (
         <img
           src={src}

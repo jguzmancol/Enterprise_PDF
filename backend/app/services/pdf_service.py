@@ -6,7 +6,7 @@ def get_page_count(file_path: str) -> int:
         return doc.page_count
 
 
-def render_page(file_path: str, page_number: int, zoom: float = 3.0) -> bytes:
+def render_page(file_path: str, page_number: int, zoom: float = 5.0) -> bytes:
     with fitz.open(file_path) as doc:
         page = doc.load_page(page_number)
         matrix = fitz.Matrix(zoom, zoom)

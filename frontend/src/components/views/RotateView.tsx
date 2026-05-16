@@ -6,9 +6,10 @@ import PreviewImage from "../PreviewImage";
 
 interface Props {
   files: FileInfo[];
+  thumbnailSize?: number;
 }
 
-export default function RotateView({ files }: Props) {
+export default function RotateView({ files, thumbnailSize }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pageVersions, setPageVersions] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
@@ -101,7 +102,7 @@ export default function RotateView({ files }: Props) {
                     <PreviewImage
                       src={getPreviewSrc(pageNum)}
                       alt={`Page ${pageNum}`}
-                      className="aspect-[3/4] w-full"
+                      size={thumbnailSize}
                     />
                     <button
                       onClick={() => handleRotate(pageNum)}

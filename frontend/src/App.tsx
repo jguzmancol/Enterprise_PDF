@@ -13,6 +13,7 @@ import ImageToPdfView from "./components/views/ImageToPdfView";
 export default function App() {
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [thumbnailSize, setThumbnailSize] = useState(100);
   const navigate = useNavigate();
 
   const handleUpload = useCallback(async (fileList: FileList | File[]) => {
@@ -40,16 +41,18 @@ export default function App() {
       onUpload={handleUpload}
       error={error}
       onClearFiles={clearFiles}
+      thumbnailSize={thumbnailSize}
+      onThumbnailSizeChange={setThumbnailSize}
     >
       <Routes>
         <Route path="/" element={<Navigate to="/merge" replace />} />
         <Route
           path="/merge"
-          element={<MergeView files={files} />}
+          element={<MergeView files={files} thumbnailSize={thumbnailSize} />}
         />
         <Route
           path="/split"
-          element={<SplitView files={files} removeFile={removeFile} />}
+          element={<SplitView files={files} removeFile={removeFile} thumbnailSize={thumbnailSize} />}
         />
         <Route
           path="/compress"
@@ -57,11 +60,11 @@ export default function App() {
         />
         <Route
           path="/rotate"
-          element={<RotateView files={files} />}
+          element={<RotateView files={files} thumbnailSize={thumbnailSize} />}
         />
         <Route
           path="/reorder"
-          element={<ReorderView files={files} removeFile={removeFile} />}
+          element={<ReorderView files={files} removeFile={removeFile} thumbnailSize={thumbnailSize} />}
         />
         <Route path="/image-to-pdf" element={<ImageToPdfView />} />
       </Routes>
