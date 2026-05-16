@@ -14,8 +14,16 @@ async def reorder_endpoint(req: ReorderRequest):
         raise HTTPException(status_code=404, detail="File not found")
 
     page_count = get_page_count(path)
-    if sorted(req.order) != list(range(1, page_count + 1)):
-        raise HTTPException(status_code=400, detail="Order must include all pages exactly once")
+    if len(req.order) == 0:
+        raise HTTPException(status_code=400, detail="At least one page required")
+    if len(set(req.order)) != len(req.order):
+        raise HTTPException(status_code=400, detail="Duplicate pages in order")
+    for p in req.order:
+        if p < 1 or p > page_count:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Page {p} out of range (1-{page_count})",
+            )
 
     download_id = generate_id()
     output_path = get_result_path(download_id)
