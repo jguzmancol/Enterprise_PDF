@@ -88,7 +88,10 @@ export default function RotateView({ files, thumbnailSize }: Props) {
             Click the circle on any page to rotate it 90&deg; clockwise.
           </p>
 
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 max-h-[60vh] overflow-y-auto p-2 border border-gray-200 dark:border-gray-600 rounded-lg">
+          <div
+            className="grid gap-2 max-h-[60vh] overflow-y-auto p-2 border border-gray-200 dark:border-gray-600 rounded-lg"
+            style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${thumbnailSize || 80}px, 1fr))` }}
+          >
             {Array.from({ length: selected.page_count }, (_, i) => i + 1).map(
               (pageNum) => (
                 <div

@@ -127,7 +127,10 @@ export default function MergeView({ files, thumbnailSize }: Props) {
         unwanted pages, then merge.
       </p>
 
-      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 max-h-[60vh] overflow-y-auto p-2 border border-gray-200 dark:border-gray-600 rounded-lg">
+      <div
+        className="grid gap-2 max-h-[60vh] overflow-y-auto p-2 border border-gray-200 dark:border-gray-600 rounded-lg"
+        style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${thumbnailSize || 80}px, 1fr))` }}
+      >
         {displayOrder.map((pageIdx, idx) => {
           const entry = allPages[pageIdx];
           const isSelected = selected.has(idx);
