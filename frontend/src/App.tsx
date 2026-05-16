@@ -40,7 +40,6 @@ export default function App() {
       onUpload={handleUpload}
       error={error}
       onClearFiles={clearFiles}
-      onRemoveFile={removeFile}
     >
       <Routes>
         <Route path="/" element={<Navigate to="/merge" replace />} />
