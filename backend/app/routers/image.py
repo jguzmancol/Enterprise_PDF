@@ -2,6 +2,7 @@ import os
 from fastapi import APIRouter, HTTPException, UploadFile, File
 
 from app.schemas import ResultResponse
+from app.config import MAX_FILES_PER_UPLOAD
 from app.services.file_service import (
     get_result_path,
     generate_id,
@@ -16,6 +17,11 @@ router = APIRouter()
 async def to_pdf_endpoint(files: list[UploadFile] = File(...)):
     if not files:
         raise HTTPException(status_code=400, detail="No images provided")
+    if len(files) > MAX_FILES_PER_UPLOAD:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum {MAX_FILES_PER_UPLOAD} files per upload",
+        )
 
     temp_paths = []
     for f in files:

@@ -1,6 +1,8 @@
-from contextlib import asynccontextmanager
+import asyncio
 import os
 import time
+import shutil
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,18 +20,25 @@ def cleanup_old_files(directory: str, ttl_seconds: int):
             if os.path.isfile(path) and now - os.path.getmtime(path) > ttl_seconds:
                 os.remove(path)
             elif os.path.isdir(path) and now - os.path.getmtime(path) > ttl_seconds:
-                import shutil
                 shutil.rmtree(path, ignore_errors=True)
         except OSError:
             pass
+
+
+async def cleanup_task():
+    ttl = SESSION_TTL_MINUTES * 60
+    while True:
+        await asyncio.sleep(ttl)
+        cleanup_old_files(SESSIONS_DIR, ttl)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     os.makedirs(SESSIONS_DIR, exist_ok=True)
     os.makedirs(PREVIEWS_DIR, exist_ok=True)
+    task = asyncio.create_task(cleanup_task())
     yield
-    pass
+    task.cancel()
 
 
 app = FastAPI(lifespan=lifespan)

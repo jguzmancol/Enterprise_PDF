@@ -9,6 +9,8 @@ router = APIRouter()
 
 @router.get("/preview/{file_id}/{page}")
 async def preview_page(file_id: str, page: int):
+    if page < 1:
+        raise HTTPException(status_code=400, detail="Page must be >= 1")
     path = get_upload_path(file_id)
     if not path:
         raise HTTPException(status_code=404, detail="File not found")

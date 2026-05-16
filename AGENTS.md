@@ -59,7 +59,7 @@ python -c "import sys; sys.path.insert(0, 'backend'); from app.main import app; 
 
 | Método | Ruta | Propósito |
 |--------|------|-----------|
-| POST | `/api/upload` | Subir PDF(s), devuelve `id`, `page_count`, `size_bytes` |
+| POST | `/api/upload` | Subir PDF(s) (máx 50 archivos), devuelve `id`, `page_count`, `size_bytes` |
 | GET | `/api/preview/{id}/{page}` | PNG de página (lazy load) |
 | POST | `/api/merge` | Fusiona PDFs enteros en orden |
 | POST | `/api/merge-pages` | Fusiona páginas específicas `[{"file_id","page"}]` en orden |
@@ -77,9 +77,9 @@ python -c "import sys; sys.path.insert(0, 'backend'); from app.main import app; 
 - **Tailwind v4**: usa `@import "tailwindcss"` en CSS (no `@tailwind` directives). Dark mode con `@custom-variant dark (&:where(.dark, .dark *))` en CSS y clase `.dark` en `<html>`. Config en `vite.config.ts` con plugin `@tailwindcss/vite`, no archivo `tailwind.config.js` separado.
 - **Nginx** limita subida a 100 MB (`client_max_body_size`), debe coincidir con `MAX_UPLOAD_MB` del backend.
 - **HashRouter** (no BrowserRouter) porque se sirve estático detrás de Nginx.
-- **Previsualizaciones**: lazy-load con `IntersectionObserver` en `PreviewImage.tsx`. El backend genera PNG bajo demanda sin caché (se puede agregar después).
-- **Archivos temporales**: se guardan en `/tmp/sessions/`. Backend expone `SESSION_TTL_MINUTES` (default 30), pero el cleanup no está implementado — los archivos se acumulan hasta reinicio del contenedor.
-- **Upload**: el frontend envía `FormData` con campo `files` (lista). El backend recibe `list[UploadFile] = File(...)`.
+- **Previsualizaciones**: lazy-load con `IntersectionObserver` en `PreviewImage.tsx`. El backend genera PNG bajo demanda sin caché (se puede agregar después). El endpoint valida `page >= 1`.
+- **Archivos temporales**: se guardan en `/tmp/sessions/`. Backend expone `SESSION_TTL_MINUTES` (default 30). Cleanup periódico implementado en `main.py` (tarea asyncio cada `SESSION_TTL_MINUTES`).
+- **Upload**: el frontend envía `FormData` con campo `files` (lista). El backend recibe `list[UploadFile] = File(...)`. Valida extensión `.pdf`, tamaño máximo (`MAX_UPLOAD_MB`), y cantidad máxima de archivos (`MAX_FILES_PER_UPLOAD`).
 - **Download**: el frontend usa `<a href={downloadUrl(id, filename)} download>` con el atributo `download` sin valor. Si el usuario escribe `test` (sin `.pdf`), el frontend envía `?filename=test`. El backend `download.py` detecta la extensión real del archivo en disco y la añade automáticamente si el filename del query param no tiene extensión.
 
 ## Convenciones de código

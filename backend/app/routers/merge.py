@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.schemas import MergeRequest, MergePagesRequest, ResultResponse
 from app.services.file_service import get_upload_path, get_result_path, generate_id
-from app.services.pdf_service import merge_pdfs, merge_specific_pages
+from app.services.pdf_service import merge_pdfs, merge_specific_pages, get_page_count
 
 router = APIRouter()
 
@@ -29,6 +29,14 @@ async def merge_pages_endpoint(req: MergePagesRequest):
         path = get_upload_path(fp.file_id)
         if not path:
             raise HTTPException(status_code=404, detail=f"File {fp.file_id} not found")
+        if fp.page < 1:
+            raise HTTPException(status_code=400, detail="Page must be >= 1")
+        page_count = get_page_count(path)
+        if fp.page > page_count:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Page {fp.page} out of range (1-{page_count}) for file {fp.file_id}",
+            )
         file_pages.append((path, fp.page))
 
     download_id = generate_id()
