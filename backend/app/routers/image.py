@@ -2,7 +2,7 @@ import os
 from fastapi import APIRouter, HTTPException, UploadFile, File
 
 from app.schemas import ResultResponse
-from app.config import MAX_FILES_PER_UPLOAD
+from app.config import MAX_UPLOAD_MB, MAX_FILES_PER_UPLOAD
 from app.services.file_service import (
     get_result_path,
     generate_id,
@@ -36,6 +36,11 @@ async def to_pdf_endpoint(files: list[UploadFile] = File(...)):
         fid = generate_id()
         path = os.path.join(SESSIONS_DIR, f"img_{fid}{ext}")
         content = await f.read()
+        if len(content) > MAX_UPLOAD_MB * 1024 * 1024:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Image exceeds maximum size of {MAX_UPLOAD_MB} MB",
+            )
         with open(path, "wb") as out:
             out.write(content)
         temp_paths.append(path)

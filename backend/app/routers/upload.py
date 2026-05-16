@@ -37,7 +37,14 @@ async def upload_files(files: list[UploadFile] = File(...)):
 
         file_id = generate_id()
         saved_path = save_upload(file_id, f.filename or "unnamed.pdf", content)
-        page_count = get_page_count(saved_path)
+        try:
+            page_count = get_page_count(saved_path)
+        except Exception:
+            os.remove(saved_path)
+            raise HTTPException(
+                status_code=400,
+                detail="File is not a valid PDF",
+            )
         result.append(
             FileInfo(
                 id=file_id,
