@@ -3,13 +3,17 @@ import type { FileInfo } from "../../types";
 import { rotatePage, reorderFile, previewUrl, downloadUrl } from "../../api/client";
 import FileCard from "../FileCard";
 import PreviewImage from "../PreviewImage";
+import FileDropzone from "../FileDropzone";
 
 interface Props {
   files: FileInfo[];
   thumbnailSize?: number;
+  onUpload?: (files: FileList | File[]) => void;
+  error?: string | null;
+  useSharedFiles?: boolean;
 }
 
-export default function RotateView({ files, thumbnailSize }: Props) {
+export default function RotateView({ files, thumbnailSize, onUpload, error, useSharedFiles }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pageVersions, setPageVersions] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
@@ -53,9 +57,21 @@ export default function RotateView({ files, thumbnailSize }: Props) {
 
   if (files.length === 0) {
     return (
-      <p className="text-gray-500 dark:text-gray-400 text-sm">
-        Upload a PDF to rotate its pages.
-      </p>
+      <div>
+        {!useSharedFiles && onUpload && (
+          <div className="mb-4">
+            <FileDropzone onUpload={onUpload} multiple={false} />
+            {error && (
+              <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
+                {error}
+              </div>
+            )}
+          </div>
+        )}
+        <p className="text-gray-500 dark:text-gray-400 text-sm">
+          Upload a PDF to rotate its pages.
+        </p>
+      </div>
     );
   }
 

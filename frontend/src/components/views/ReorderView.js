@@ -3,7 +3,8 @@ import { useState } from "react";
 import { reorderFile, rotatePage, previewUrl, downloadUrl } from "../../api/client";
 import FileCard from "../FileCard";
 import PreviewImage from "../PreviewImage";
-export default function ReorderView({ files, removeFile, thumbnailSize }) {
+import FileDropzone from "../FileDropzone";
+export default function ReorderView({ files, removeFile, thumbnailSize, onUpload, error, useSharedFiles }) {
     const [selectedId, setSelectedId] = useState(null);
     const [order, setOrder] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -89,7 +90,7 @@ export default function ReorderView({ files, removeFile, thumbnailSize }) {
         }
     };
     if (files.length === 0) {
-        return (_jsx("p", { className: "text-gray-500 dark:text-gray-400 text-sm", children: "Upload a PDF to reorder its pages." }));
+        return (_jsxs("div", { children: [!useSharedFiles && onUpload && (_jsxs("div", { className: "mb-4", children: [_jsx(FileDropzone, { onUpload: onUpload, multiple: false }), error && (_jsx("div", { className: "mt-3 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm", children: error }))] })), _jsx("p", { className: "text-gray-500 dark:text-gray-400 text-sm", children: "Upload a PDF to reorder its pages." })] }));
     }
     return (_jsxs("div", { children: [_jsx("h2", { className: "text-lg font-semibold mb-3 dark:text-gray-100", children: "Reorder Pages" }), !selected ? (_jsxs("div", { children: [_jsx("p", { className: "text-sm text-gray-500 dark:text-gray-400 mb-3", children: "Select a file to reorder:" }), _jsx("div", { className: "space-y-2", children: files.map((f) => (_jsx("div", { onClick: () => setSelectedId(f.id), className: "cursor-pointer", children: _jsx(FileCard, { file: f, onRemove: removeFile }) }, f.id))) })] })) : (_jsxs("div", { children: [_jsx("div", { className: "mb-4", children: _jsx(FileCard, { file: selected, selected: true }) }), _jsx("p", { className: "text-sm text-gray-500 dark:text-gray-400 mb-3", children: "Click thumbnails to select pages, then delete. Drag or use arrows to reorder." }), _jsx("div", { className: "grid gap-2 p-2 border border-gray-200 dark:border-gray-600 rounded-lg", style: { gridTemplateColumns: `repeat(auto-fill, minmax(${thumbnailSize || 80}px, 1fr))` }, children: order.map((pageNum, idx) => {
                             const isSelected = selectedPages.has(idx);

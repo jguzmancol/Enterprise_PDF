@@ -5,12 +5,16 @@ interface Props {
   accept?: string;
   label?: string;
   hint?: string;
+  multiple?: boolean;
 }
 
 export default function FileDropzone({
   onUpload,
   accept = ".pdf",
-  label = "Drag & drop PDF files here, or click to browse",
+  multiple = true,
+  label = multiple
+    ? "Drag & drop PDF files here, or click to browse"
+    : "Drag & drop a PDF file here, or click to browse",
   hint = "Max 100 MB per file",
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -48,7 +52,7 @@ export default function FileDropzone({
           ref={inputRef}
           type="file"
           accept={accept}
-          multiple
+          multiple={multiple}
           onChange={handleChange}
           className="hidden"
         />
@@ -79,7 +83,7 @@ export default function FileDropzone({
         ref={inputRef}
         type="file"
         accept={accept}
-        multiple
+        multiple={multiple}
         onChange={handleChange}
         className="hidden"
       />

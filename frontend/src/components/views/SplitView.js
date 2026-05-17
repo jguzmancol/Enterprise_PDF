@@ -3,7 +3,8 @@ import { useState } from "react";
 import { splitFile, rotatePage, previewUrl, downloadUrl } from "../../api/client";
 import FileCard from "../FileCard";
 import PreviewImage from "../PreviewImage";
-export default function SplitView({ files, removeFile, thumbnailSize }) {
+import FileDropzone from "../FileDropzone";
+export default function SplitView({ files, removeFile, thumbnailSize, onUpload, error, useSharedFiles }) {
     const [selectedId, setSelectedId] = useState(null);
     const [rangesText, setRangesText] = useState("");
     const [filename, setFilename] = useState("");
@@ -90,7 +91,7 @@ export default function SplitView({ files, removeFile, thumbnailSize }) {
         }
     };
     if (files.length === 0) {
-        return (_jsx("p", { className: "text-gray-500 dark:text-gray-400 text-sm", children: "Upload a PDF to split it into parts." }));
+        return (_jsxs("div", { children: [!useSharedFiles && onUpload && (_jsxs("div", { className: "mb-4", children: [_jsx(FileDropzone, { onUpload: onUpload, multiple: false }), error && (_jsx("div", { className: "mt-3 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm", children: error }))] })), _jsx("p", { className: "text-gray-500 dark:text-gray-400 text-sm", children: "Upload a PDF to split it into parts." })] }));
     }
     return (_jsxs("div", { children: [_jsx("h2", { className: "text-lg font-semibold mb-3 dark:text-gray-100", children: "Split PDF" }), !selected ? (_jsxs("div", { children: [_jsx("p", { className: "text-sm text-gray-500 dark:text-gray-400 mb-3", children: "Select a file to split:" }), _jsx("div", { className: "space-y-2", children: files.map((f) => (_jsx("div", { onClick: () => setSelectedId(f.id), className: "cursor-pointer", children: _jsx(FileCard, { file: f, onRemove: removeFile }) }, f.id))) })] })) : (_jsxs("div", { children: [_jsx("div", { className: "mb-4", children: _jsx(FileCard, { file: selected, onRemove: removeFile, selected: true }) }), _jsx("p", { className: "text-sm text-gray-500 dark:text-gray-400 mb-3", children: "Click thumbnails to add pages, or type ranges manually." }), _jsx("div", { className: "grid gap-2 p-2 border border-gray-200 dark:border-gray-600 rounded-lg mb-4", style: { gridTemplateColumns: `repeat(auto-fill, minmax(${thumbnailSize || 80}px, 1fr))` }, children: Array.from({ length: selected.page_count }, (_, i) => i + 1).map((pageNum) => (_jsxs("button", { onClick: () => appendToRanges(pageNum), className: "border border-gray-200 dark:border-gray-600 rounded-lg p-1 hover:border-blue-300 transition-colors", children: [_jsxs("div", { className: "relative", children: [_jsx(PreviewImage, { src: getPreviewSrc(pageNum), alt: `Page ${pageNum}`, size: thumbnailSize }), _jsx("span", { onClick: (e) => {
                                                 e.stopPropagation();

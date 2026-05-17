@@ -2,13 +2,14 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from "react";
 import { compressFile, downloadUrl } from "../../api/client";
 import FileCard from "../FileCard";
+import FileDropzone from "../FileDropzone";
 const levels = [
     { value: 0, label: "Minimal", desc: "Fast, minor reduction" },
     { value: 1, label: "Light", desc: "Basic compression" },
     { value: 2, label: "Medium", desc: "Good balance" },
     { value: 3, label: "Maximum", desc: "Strongest compression" },
 ];
-export default function CompressView({ files }) {
+export default function CompressView({ files, onUpload, error, useSharedFiles }) {
     const [selectedId, setSelectedId] = useState(null);
     const [level, setLevel] = useState(2);
     const [loading, setLoading] = useState(false);
@@ -32,7 +33,7 @@ export default function CompressView({ files }) {
         }
     };
     if (files.length === 0) {
-        return (_jsx("p", { className: "text-gray-500 dark:text-gray-400 text-sm", children: "Upload a PDF to compress it." }));
+        return (_jsxs("div", { children: [!useSharedFiles && onUpload && (_jsxs("div", { className: "mb-4", children: [_jsx(FileDropzone, { onUpload: onUpload, multiple: false }), error && (_jsx("div", { className: "mt-3 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm", children: error }))] })), _jsx("p", { className: "text-gray-500 dark:text-gray-400 text-sm", children: "Upload a PDF to compress it." })] }));
     }
     return (_jsxs("div", { children: [_jsx("h2", { className: "text-lg font-semibold mb-3 dark:text-gray-100", children: "Compress PDF" }), !selected ? (_jsxs("div", { children: [_jsx("p", { className: "text-sm text-gray-500 dark:text-gray-400 mb-3", children: "Select a file to compress:" }), _jsx("div", { className: "space-y-2", children: files.map((f) => (_jsx("div", { onClick: () => setSelectedId(f.id), className: "cursor-pointer", children: _jsx(FileCard, { file: f }) }, f.id))) })] })) : (_jsxs("div", { children: [_jsx("div", { className: "mb-4", children: _jsx(FileCard, { file: selected, selected: true }) }), _jsx("label", { className: "block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3", children: "Compression level" }), _jsx("div", { className: "flex gap-2", children: levels.map((l) => (_jsxs("button", { onClick: () => setLevel(l.value), className: `flex-1 p-3 border rounded-lg text-center transition-colors ${level === l.value
                                 ? "border-blue-400 bg-blue-50 dark:bg-blue-900/30 ring-2 ring-blue-100 dark:ring-blue-900/50"

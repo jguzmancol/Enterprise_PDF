@@ -26,7 +26,7 @@ function tabKeyFromPath(path: string): string {
 export default function App() {
   const [sharedFiles, setSharedFiles] = useState<FileInfo[]>([]);
   const [tabFiles, setTabFiles] = useState<Record<string, FileInfo[]>>({});
-  const [useSharedFiles, setUseSharedFiles] = useState(true);
+  const [useSharedFiles, setUseSharedFiles] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [thumbnailSize, setThumbnailSize] = useState(100);
   const navigate = useNavigate();
@@ -37,6 +37,8 @@ export default function App() {
   const files = useSharedFiles
     ? sharedFiles
     : tabFiles[currentTab] || [];
+
+  const allowMultiple = currentTab === "merge";
 
   const updateTabFiles = useCallback(
     (tab: string, updater: (prev: FileInfo[]) => FileInfo[]) => {
@@ -93,40 +95,36 @@ export default function App() {
   return (
     <Layout
       files={files}
+      onUpload={handleUpload}
+      error={error}
       onClearFiles={clearFiles}
       thumbnailSize={thumbnailSize}
       onThumbnailSizeChange={setThumbnailSize}
       useSharedFiles={useSharedFiles}
       onToggleSharedFiles={setUseSharedFiles}
+      multiple={allowMultiple}
     >
       <Routes>
         <Route path="/" element={<Navigate to="/merge" replace />} />
         <Route
           path="/merge"
-          element={
-            <MergeView
-              files={files}
-              thumbnailSize={thumbnailSize}
-              onUpload={handleUpload}
-              error={error}
-            />
-          }
+          element={<MergeView files={files} thumbnailSize={thumbnailSize} onUpload={handleUpload} error={error} useSharedFiles={useSharedFiles} multiple={allowMultiple} />}
         />
         <Route
           path="/split"
-          element={<SplitView files={files} removeFile={removeFile} thumbnailSize={thumbnailSize} />}
+          element={<SplitView files={files} removeFile={removeFile} thumbnailSize={thumbnailSize} onUpload={handleUpload} error={error} useSharedFiles={useSharedFiles} />}
         />
         <Route
           path="/compress"
-          element={<CompressView files={files} />}
+          element={<CompressView files={files} onUpload={handleUpload} error={error} useSharedFiles={useSharedFiles} />}
         />
         <Route
           path="/rotate"
-          element={<RotateView files={files} thumbnailSize={thumbnailSize} />}
+          element={<RotateView files={files} thumbnailSize={thumbnailSize} onUpload={handleUpload} error={error} useSharedFiles={useSharedFiles} />}
         />
         <Route
           path="/reorder"
-          element={<ReorderView files={files} removeFile={removeFile} thumbnailSize={thumbnailSize} />}
+          element={<ReorderView files={files} removeFile={removeFile} thumbnailSize={thumbnailSize} onUpload={handleUpload} error={error} useSharedFiles={useSharedFiles} />}
         />
         <Route path="/image-to-pdf" element={<ImageToPdfView />} />
       </Routes>

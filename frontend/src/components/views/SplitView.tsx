@@ -3,14 +3,18 @@ import type { FileInfo } from "../../types";
 import { splitFile, rotatePage, previewUrl, downloadUrl } from "../../api/client";
 import FileCard from "../FileCard";
 import PreviewImage from "../PreviewImage";
+import FileDropzone from "../FileDropzone";
 
 interface Props {
   files: FileInfo[];
   removeFile: (id: string) => void;
   thumbnailSize?: number;
+  onUpload?: (files: FileList | File[]) => void;
+  error?: string | null;
+  useSharedFiles?: boolean;
 }
 
-export default function SplitView({ files, removeFile, thumbnailSize }: Props) {
+export default function SplitView({ files, removeFile, thumbnailSize, onUpload, error, useSharedFiles }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [rangesText, setRangesText] = useState("");
   const [filename, setFilename] = useState("");
@@ -97,9 +101,21 @@ export default function SplitView({ files, removeFile, thumbnailSize }: Props) {
 
   if (files.length === 0) {
     return (
-      <p className="text-gray-500 dark:text-gray-400 text-sm">
-        Upload a PDF to split it into parts.
-      </p>
+      <div>
+        {!useSharedFiles && onUpload && (
+          <div className="mb-4">
+            <FileDropzone onUpload={onUpload} multiple={false} />
+            {error && (
+              <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
+                {error}
+              </div>
+            )}
+          </div>
+        )}
+        <p className="text-gray-500 dark:text-gray-400 text-sm">
+          Upload a PDF to split it into parts.
+        </p>
+      </div>
     );
   }
 

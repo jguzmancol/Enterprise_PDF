@@ -7,8 +7,10 @@ import FileDropzone from "../FileDropzone";
 interface Props {
   files: FileInfo[];
   thumbnailSize?: number;
-  onUpload: (files: FileList | File[]) => void;
-  error: string | null;
+  onUpload?: (files: FileList | File[]) => void;
+  error?: string | null;
+  useSharedFiles?: boolean;
+  multiple?: boolean;
 }
 
 interface PageEntry {
@@ -17,7 +19,7 @@ interface PageEntry {
   fileName: string;
 }
 
-export default function MergeView({ files, thumbnailSize, onUpload, error }: Props) {
+export default function MergeView({ files, thumbnailSize, onUpload, error, useSharedFiles, multiple = true }: Props) {
   const [loading, setLoading] = useState(false);
   const [downloadId, setDownloadId] = useState<string | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -47,6 +49,26 @@ export default function MergeView({ files, thumbnailSize, onUpload, error }: Pro
   }, [files]);
 
   const displayOrder = order ?? allPages.map((_, i) => i);
+
+  if (files.length === 0) {
+    return (
+      <div>
+        {!useSharedFiles && onUpload && (
+          <div className="mb-4">
+            <FileDropzone onUpload={onUpload} multiple={multiple} />
+            {error && (
+              <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
+                {error}
+              </div>
+            )}
+          </div>
+        )}
+        <p className="text-gray-500 dark:text-gray-400 text-sm">
+          Upload at least one PDF to get started.
+        </p>
+      </div>
+    );
+  }
 
   const toggleSelect = (idx: number) => {
     const next = new Set(selected);
@@ -116,17 +138,6 @@ export default function MergeView({ files, thumbnailSize, onUpload, error }: Pro
 
   return (
     <div>
-      <div className="mb-4">
-        <FileDropzone onUpload={onUpload} />
-        {error && (
-          <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
-            {error}
-          </div>
-        )}
-      </div>
-
-      {files.length > 0 && (
-        <>
       <h2 className="text-lg font-semibold mb-3 dark:text-gray-100">Merge PDFs</h2>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
         All pages from your uploaded files. Reorder, select, and remove
@@ -249,8 +260,6 @@ export default function MergeView({ files, thumbnailSize, onUpload, error }: Pro
           </a>
         </div>
       )}
-      </>
-    )}
     </div>
   );
 }
