@@ -2,13 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import type { ReactNode } from "react";
 import type { FileInfo } from "../types";
 import NavTabs from "./NavTabs";
-import FileDropzone from "./FileDropzone";
 import DarkModeToggle from "./DarkModeToggle";
 
 interface Props {
   files: FileInfo[];
-  onUpload: (files: FileList | File[]) => void;
-  error: string | null;
   onClearFiles: () => void;
   thumbnailSize: number;
   onThumbnailSizeChange: (size: number) => void;
@@ -19,8 +16,6 @@ interface Props {
 
 export default function Layout({
   files,
-  onUpload,
-  error,
   onClearFiles,
   thumbnailSize,
   onThumbnailSizeChange,
@@ -111,15 +106,6 @@ export default function Layout({
       <NavTabs />
 
       <main className="flex-1 min-h-0 overflow-y-auto p-5">
-        <div className="mb-4">
-          <FileDropzone onUpload={onUpload} />
-          {error && (
-            <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
-              {error}
-            </div>
-          )}
-        </div>
-
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4 sticky top-0 bg-gray-50 dark:bg-gray-900 pb-2 z-10">
           <span>Previews:</span>
           <button

@@ -93,8 +93,6 @@ export default function App() {
   return (
     <Layout
       files={files}
-      onUpload={handleUpload}
-      error={error}
       onClearFiles={clearFiles}
       thumbnailSize={thumbnailSize}
       onThumbnailSizeChange={setThumbnailSize}
@@ -105,7 +103,14 @@ export default function App() {
         <Route path="/" element={<Navigate to="/merge" replace />} />
         <Route
           path="/merge"
-          element={<MergeView files={files} thumbnailSize={thumbnailSize} />}
+          element={
+            <MergeView
+              files={files}
+              thumbnailSize={thumbnailSize}
+              onUpload={handleUpload}
+              error={error}
+            />
+          }
         />
         <Route
           path="/split"
