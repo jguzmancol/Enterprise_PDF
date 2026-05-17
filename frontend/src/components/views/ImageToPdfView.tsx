@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toPdf, downloadUrl } from "../../api/client";
+import FileDropzone from "../FileDropzone";
 
 export default function ImageToPdfView() {
   const [loading, setLoading] = useState(false);
@@ -7,14 +8,12 @@ export default function ImageToPdfView() {
   const [filename, setFilename] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  const handleUpload = async (fileList: FileList | File[]) => {
     setLoading(true);
     setDownloadId(null);
     setError(null);
     try {
-      const result = await toPdf(files);
+      const result = await toPdf(fileList);
       setDownloadId(result.download_id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Conversion failed");
@@ -31,18 +30,14 @@ export default function ImageToPdfView() {
         PDF. Each image becomes a page.
       </p>
 
-      <label className="block mb-4">
-        <span className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-          Select images
-        </span>
-        <input
-          type="file"
+      <div className="mb-4">
+        <FileDropzone
+          onUpload={handleUpload}
           accept="image/*"
-          multiple
-          onChange={handleUpload}
-          className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-blue-900/30 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-800/40"
+          label="Drag & drop images here, or click to browse"
+          hint="Supports PNG, JPEG, WebP, BMP, TIFF"
         />
-      </label>
+      </div>
 
       {error && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm mb-4">
