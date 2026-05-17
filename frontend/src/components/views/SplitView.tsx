@@ -133,7 +133,7 @@ export default function SplitView({ files, removeFile, thumbnailSize }: Props) {
           </p>
 
           <div
-            className="grid gap-2 max-h-48 overflow-y-auto p-2 border border-gray-200 dark:border-gray-600 rounded-lg mb-4"
+            className="grid gap-2 p-2 border border-gray-200 dark:border-gray-600 rounded-lg mb-4"
             style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${thumbnailSize || 80}px, 1fr))` }}
           >
             {Array.from({ length: selected.page_count }, (_, i) => i + 1).map(

@@ -96,7 +96,7 @@ export default function MergeView({ files, thumbnailSize }) {
             setLoading(false);
         }
     };
-    return (_jsxs("div", { children: [_jsx("h2", { className: "text-lg font-semibold mb-3 dark:text-gray-100", children: "Merge PDFs" }), _jsx("p", { className: "text-sm text-gray-500 dark:text-gray-400 mb-4", children: "All pages from your uploaded files. Reorder, select, and remove unwanted pages, then merge." }), _jsx("div", { className: "grid gap-2 max-h-[60vh] overflow-y-auto p-2 border border-gray-200 dark:border-gray-600 rounded-lg", style: { gridTemplateColumns: `repeat(auto-fill, minmax(${thumbnailSize || 80}px, 1fr))` }, children: displayOrder.map((pageIdx, idx) => {
+    return (_jsxs("div", { children: [_jsx("h2", { className: "text-lg font-semibold mb-3 dark:text-gray-100", children: "Merge PDFs" }), _jsx("p", { className: "text-sm text-gray-500 dark:text-gray-400 mb-4", children: "All pages from your uploaded files. Reorder, select, and remove unwanted pages, then merge." }), _jsx("div", { className: "grid gap-2 p-2 border border-gray-200 dark:border-gray-600 rounded-lg", style: { gridTemplateColumns: `repeat(auto-fill, minmax(${thumbnailSize || 80}px, 1fr))` }, children: displayOrder.map((pageIdx, idx) => {
                     const entry = allPages[pageIdx];
                     const isSelected = selected.has(idx);
                     return (_jsxs("div", { draggable: true, onDragStart: () => handleDragStart(idx), onDragOver: (e) => handleDragOver(e, idx), onDragEnd: handleDragEnd, onClick: () => toggleSelect(idx), className: `relative border rounded-lg p-1 cursor-pointer transition-colors ${dragIdx === idx

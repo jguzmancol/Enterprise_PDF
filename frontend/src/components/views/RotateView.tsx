@@ -89,7 +89,7 @@ export default function RotateView({ files, thumbnailSize }: Props) {
           </p>
 
           <div
-            className="grid gap-2 max-h-[60vh] overflow-y-auto p-2 border border-gray-200 dark:border-gray-600 rounded-lg"
+            className="grid gap-2 p-2 border border-gray-200 dark:border-gray-600 rounded-lg"
             style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${thumbnailSize || 80}px, 1fr))` }}
           >
             {Array.from({ length: selected.page_count }, (_, i) => i + 1).map(

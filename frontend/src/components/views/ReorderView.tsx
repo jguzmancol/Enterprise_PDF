@@ -138,7 +138,7 @@ export default function ReorderView({ files, removeFile, thumbnailSize }: Props)
           </p>
 
           <div
-            className="grid gap-2 max-h-96 overflow-y-auto p-2 border border-gray-200 dark:border-gray-600 rounded-lg"
+            className="grid gap-2 p-2 border border-gray-200 dark:border-gray-600 rounded-lg"
             style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${thumbnailSize || 80}px, 1fr))` }}
           >
             {order.map((pageNum, idx) => {
