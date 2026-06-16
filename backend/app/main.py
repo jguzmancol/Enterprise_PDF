@@ -6,8 +6,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import SESSIONS_DIR, PREVIEWS_DIR, SESSION_TTL_MINUTES
-from app.routers import upload, preview, merge, split, compress, rotate, reorder, download, image
+from app.config import SESSIONS_DIR, PREVIEWS_DIR, SESSION_TTL_MINUTES, MAX_UPLOAD_MB
+from app.routers import upload, preview, merge, split, compress, rotate, reorder, download, image, convert
 
 
 def cleanup_old_files(directory: str, ttl_seconds: int):
@@ -28,8 +28,9 @@ def cleanup_old_files(directory: str, ttl_seconds: int):
 async def cleanup_task():
     ttl = SESSION_TTL_MINUTES * 60
     while True:
-        await asyncio.sleep(ttl)
+        await asyncio.sleep(60)
         cleanup_old_files(SESSIONS_DIR, ttl)
+        cleanup_old_files(PREVIEWS_DIR, ttl)
 
 
 @asynccontextmanager
@@ -51,6 +52,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from fastapi.responses import JSONResponse
+
+
+@app.get("/api/health")
+async def health():
+    return JSONResponse({"status": "ok", "max_upload_mb": MAX_UPLOAD_MB})
+
+
 app.include_router(upload.router, prefix="/api", tags=["upload"])
 app.include_router(preview.router, prefix="/api", tags=["preview"])
 app.include_router(merge.router, prefix="/api", tags=["merge"])
@@ -60,3 +69,4 @@ app.include_router(rotate.router, prefix="/api", tags=["rotate"])
 app.include_router(reorder.router, prefix="/api", tags=["reorder"])
 app.include_router(download.router, prefix="/api", tags=["download"])
 app.include_router(image.router, prefix="/api", tags=["image"])
+app.include_router(convert.router, prefix="/api", tags=["convert"])
