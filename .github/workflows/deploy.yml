@@ -1,0 +1,31 @@
+name: Deploy Enterprise PDF
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - backend/**
+      - frontend/**
+      - docker-compose.yml
+      - backend/Dockerfile
+      - frontend/Dockerfile
+      - frontend/nginx.conf
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            git pull origin master
+            docker compose up -d --build
+            docker system prune -f --filter "until=24h"
