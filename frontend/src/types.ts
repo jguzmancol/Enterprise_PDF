@@ -7,6 +7,7 @@ export interface FileInfo {
 
 export interface UploadResponse {
   files: FileInfo[];
+  ttl_seconds: number;
 }
 
 export interface FilePage {
@@ -17,4 +18,11 @@ export interface FilePage {
 export interface ResultResponse {
   download_id: string;
   filename: string;
+}
+
+export interface TabActions {
+  action: () => Promise<void>;
+  reset?: () => void;
+  loading: boolean;
+  hasPages: boolean;
 }

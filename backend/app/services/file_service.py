@@ -33,18 +33,20 @@ def get_preview_path(file_id: str, page: int) -> str:
     return os.path.join(dir_path, f"{page}.png")
 
 
-def get_result_path(download_id: str) -> str:
+def get_result_path(download_id: str, ext: str = ".pdf") -> str:
     if not _safe_id(download_id):
         raise ValueError("Invalid download_id")
     os.makedirs(SESSIONS_DIR, exist_ok=True)
-    return os.path.join(SESSIONS_DIR, f"result_{download_id}.pdf")
+    return os.path.join(SESSIONS_DIR, f"result_{download_id}{ext}")
 
 
 def get_result_path_for_id(download_id: str) -> str | None:
     if not _safe_id(download_id):
         return None
-    path = os.path.join(SESSIONS_DIR, f"result_{download_id}.pdf")
-    return path if os.path.isfile(path) else None
+    for fname in os.listdir(SESSIONS_DIR):
+        if fname.startswith(f"result_{download_id}."):
+            return os.path.join(SESSIONS_DIR, fname)
+    return None
 
 
 def generate_id() -> str:

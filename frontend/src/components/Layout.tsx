@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import type { ReactNode } from "react";
-import type { FileInfo } from "../types";
+import type { ReactNode, RefObject } from "react";
+import type { FileInfo, TabActions } from "../types";
+import { downloadUrl } from "../api/client";
 import NavTabs from "./NavTabs";
 import FileDropzone from "./FileDropzone";
 import DarkModeToggle from "./DarkModeToggle";
@@ -15,7 +16,16 @@ interface Props {
   useSharedFiles: boolean;
   onToggleSharedFiles: (v: boolean) => void;
   multiple?: boolean;
+  timeLeft?: number | null;
   children: ReactNode;
+  tabActionsRef?: RefObject<TabActions | null>;
+  tabFilename?: string;
+  onTabFilenameChange?: (v: string) => void;
+  tabLoading?: boolean;
+  tabDownloadId?: string | null;
+  tabHasPages?: boolean;
+  currentTab?: string;
+  onDownload?: () => void;
 }
 
 export default function Layout({
@@ -28,9 +38,30 @@ export default function Layout({
   useSharedFiles,
   onToggleSharedFiles,
   multiple = true,
+  timeLeft,
   children,
+  tabActionsRef,
+  tabFilename,
+  onTabFilenameChange,
+  tabLoading,
+  tabDownloadId,
+  tabHasPages,
+  currentTab,
+  onDownload,
 }: Props) {
   const [showOptions, setShowOptions] = useState(false);
+
+  const actionLabel = (tab: string) => {
+    const labels: Record<string, string> = {
+      merge: "Merge pages",
+      split: "Split PDF",
+      rotate: "Download rotated",
+      reorder: "Apply new order",
+      compress: "Compress",
+      office: "Convert",
+    };
+    return labels[tab] || "Process";
+  };
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -98,6 +129,11 @@ export default function Layout({
             </div>
 
             <DarkModeToggle />
+            {timeLeft != null && timeLeft > 0 && files.length > 0 && (
+              <span className="text-xs text-amber-600 dark:text-amber-400 font-mono tabular-nums">
+                &#9201; {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")} remaining
+              </span>
+            )}
             {files.length > 0 && (
               <button
                 onClick={onClearFiles}
@@ -124,23 +160,68 @@ export default function Layout({
           </div>
         )}
 
-        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4 sticky top-0 bg-gray-50 dark:bg-gray-900 pb-2 z-10">
-          <span>Previews:</span>
-          <button
-            onClick={() => onThumbnailSizeChange(Math.max(50, thumbnailSize - 10))}
-            disabled={thumbnailSize <= 50}
-            className="w-7 h-7 flex items-center justify-center rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
-          >
-            &minus;
-          </button>
-          <span className="w-8 text-center text-xs font-mono">{thumbnailSize}px</span>
-          <button
-            onClick={() => onThumbnailSizeChange(Math.min(250, thumbnailSize + 10))}
-            disabled={thumbnailSize >= 250}
-            className="w-7 h-7 flex items-center justify-center rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
-          >
-            +
-          </button>
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4 sticky top-0 bg-gray-50 dark:bg-gray-900 pb-2 z-10 flex-wrap">
+          {currentTab && ["merge", "reorder", "split", "rotate"].includes(currentTab) && (
+            <>
+              <span>Previews:</span>
+              <button
+                onClick={() => onThumbnailSizeChange(Math.max(50, thumbnailSize - 10))}
+                disabled={thumbnailSize <= 50}
+                className="w-7 h-7 flex items-center justify-center rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
+              >
+                &minus;
+              </button>
+              <span className="w-8 text-center text-xs font-mono">{thumbnailSize}px</span>
+              <button
+                onClick={() => onThumbnailSizeChange(Math.min(250, thumbnailSize + 10))}
+                disabled={thumbnailSize >= 250}
+                className="w-7 h-7 flex items-center justify-center rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 transition-colors"
+              >
+                +
+              </button>
+              <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
+            </>
+          )}
+
+          {tabActionsRef?.current?.reset && (
+            <button
+              onClick={() => tabActionsRef?.current?.reset?.()}
+              className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 dark:text-gray-200 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              Reset
+            </button>
+          )}
+
+          {currentTab !== "image-to-pdf" && (
+            <input
+              type="text"
+              value={tabFilename || ""}
+              onChange={(e) => onTabFilenameChange?.(e.target.value)}
+              placeholder={`${currentTab || "output"}.pdf`}
+              className="w-32 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          )}
+
+          {tabActionsRef && currentTab && !["image-to-pdf"].includes(currentTab) && (
+            <button
+              onClick={() => tabActionsRef?.current?.action()}
+              disabled={!tabHasPages || tabLoading}
+              className="px-5 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
+            >
+              {tabLoading ? "Processing..." : actionLabel(currentTab)}
+            </button>
+          )}
+
+          {tabDownloadId && (
+            <a
+              href={downloadUrl(tabDownloadId, tabFilename || undefined)}
+              download
+              onClick={onDownload}
+              className="px-5 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+            >
+              Download
+            </a>
+          )}
         </div>
 
         {children}

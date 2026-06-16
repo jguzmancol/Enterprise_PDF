@@ -16,7 +16,10 @@ async def compress_endpoint(req: CompressRequest):
     if req.level < 0 or req.level > 3:
         raise HTTPException(status_code=400, detail="Level must be 0-3")
 
-    download_id = generate_id()
-    output_path = get_result_path(download_id)
-    compress_pdf(path, output_path, level=req.level)
+    try:
+        download_id = generate_id()
+        output_path = get_result_path(download_id)
+        compress_pdf(path, output_path, level=req.level)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Compression failed: {e}")
     return ResultResponse(download_id=download_id, filename="compressed.pdf")

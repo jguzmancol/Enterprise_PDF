@@ -24,9 +24,12 @@ async def rotate_endpoint(req: RotateRequest):
                 detail=f"Page {p} out of range (1-{page_count})",
             )
 
-    download_id = generate_id()
-    output_path = get_result_path(download_id)
-    rotate_pages(path, req.pages, req.angle, output_path)
+    try:
+        download_id = generate_id()
+        output_path = get_result_path(download_id)
+        rotate_pages(path, req.pages, req.angle, output_path)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Rotation failed: {e}")
     return ResultResponse(download_id=download_id, filename="rotated.pdf")
 
 
@@ -42,5 +45,8 @@ async def rotate_page_endpoint(req: RotatePageRequest):
             status_code=400,
             detail=f"Page {req.page} out of range (1-{page_count})",
         )
-    rotate_page_inplace(path, req.page)
+    try:
+        rotate_page_inplace(path, req.page)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Page rotation failed: {e}")
     return {"success": True}

@@ -1,11 +1,20 @@
 const BASE = "/api";
+async function parseError(res) {
+    try {
+        const body = await res.json();
+        return body.detail || body.message || res.statusText;
+    }
+    catch {
+        return await res.text();
+    }
+}
 export async function uploadFiles(files) {
     const form = new FormData();
     for (const f of files)
         form.append("files", f);
     const res = await fetch(`${BASE}/upload`, { method: "POST", body: form });
     if (!res.ok)
-        throw new Error(await res.text());
+        throw new Error(await parseError(res));
     return res.json();
 }
 export function previewUrl(fileId, page, width) {
@@ -21,7 +30,7 @@ async function post(url, body) {
         body: JSON.stringify(body),
     });
     if (!res.ok)
-        throw new Error(await res.text());
+        throw new Error(await parseError(res));
     return res.json();
 }
 export function mergeFiles(fileIds) {

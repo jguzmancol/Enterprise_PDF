@@ -4,7 +4,7 @@ const tabs = [
     { to: "/merge", label: "Merge" },
     { to: "/split", label: "Split" },
     { to: "/compress", label: "Compress" },
-    { to: "/rotate", label: "Rotate" },
+    { to: "/office", label: "PDF→Office" },
     { to: "/reorder", label: "Reorder" },
     { to: "/image-to-pdf", label: "Img→PDF" },
 ];

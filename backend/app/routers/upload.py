@@ -2,7 +2,7 @@ import os
 from fastapi import APIRouter, UploadFile, File, HTTPException
 
 from app.schemas import UploadResponse, FileInfo
-from app.config import MAX_UPLOAD_MB, MAX_FILES_PER_UPLOAD
+from app.config import MAX_UPLOAD_MB, MAX_FILES_PER_UPLOAD, SESSION_TTL_MINUTES
 from app.services.file_service import save_upload, generate_id
 from app.services.pdf_service import get_page_count
 
@@ -53,4 +53,4 @@ async def upload_files(files: list[UploadFile] = File(...)):
                 size_bytes=len(content),
             )
         )
-    return UploadResponse(files=result)
+    return UploadResponse(files=result, ttl_seconds=SESSION_TTL_MINUTES * 60)

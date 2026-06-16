@@ -16,9 +16,12 @@ async def merge_endpoint(req: MergeRequest):
             raise HTTPException(status_code=404, detail=f"File {fid} not found")
         paths.append(p)
 
-    download_id = generate_id()
-    output_path = get_result_path(download_id)
-    merge_pdfs(paths, output_path)
+    try:
+        download_id = generate_id()
+        output_path = get_result_path(download_id)
+        merge_pdfs(paths, output_path)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Merge failed: {e}")
     return ResultResponse(download_id=download_id, filename="merged.pdf")
 
 
@@ -39,7 +42,10 @@ async def merge_pages_endpoint(req: MergePagesRequest):
             )
         file_pages.append((path, fp.page))
 
-    download_id = generate_id()
-    output_path = get_result_path(download_id)
-    merge_specific_pages(file_pages, output_path)
+    try:
+        download_id = generate_id()
+        output_path = get_result_path(download_id)
+        merge_specific_pages(file_pages, output_path)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Merge failed: {e}")
     return ResultResponse(download_id=download_id, filename="merged.pdf")

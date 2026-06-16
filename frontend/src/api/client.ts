@@ -2,11 +2,20 @@ import type { FilePage, ResultResponse } from "../types";
 
 const BASE = "/api";
 
+async function parseError(res: Response): Promise<string> {
+  try {
+    const body = await res.json();
+    return body.detail || body.message || res.statusText;
+  } catch {
+    return await res.text();
+  }
+}
+
 export async function uploadFiles(files: FileList | File[]) {
   const form = new FormData();
   for (const f of files) form.append("files", f);
   const res = await fetch(`${BASE}/upload`, { method: "POST", body: form });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) throw new Error(await parseError(res));
   return res.json() as Promise<import("../types").UploadResponse>;
 }
 
@@ -22,7 +31,7 @@ async function post<T>(url: string, body: unknown) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) throw new Error(await parseError(res));
   return res.json() as Promise<T>;
 }
 

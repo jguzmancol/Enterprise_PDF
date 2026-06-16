@@ -10,6 +10,7 @@ class FileInfo(BaseModel):
 
 class UploadResponse(BaseModel):
     files: list[FileInfo]
+    ttl_seconds: int
 
 
 class MergeRequest(BaseModel):
@@ -50,6 +51,10 @@ class FilePage(BaseModel):
 
 class MergePagesRequest(BaseModel):
     file_pages: list[FilePage]
+
+
+class FileIdRequest(BaseModel):
+    file_id: str
 
 
 class ResultResponse(BaseModel):

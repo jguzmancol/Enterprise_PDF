@@ -1,6 +1,6 @@
-import { useState } from "react";
-import type { FileInfo } from "../../types";
-import { splitFile, rotatePage, previewUrl, downloadUrl } from "../../api/client";
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import type { FileInfo, TabActions } from "../../types";
+import { splitFile, rotatePage, previewUrl } from "../../api/client";
 import FileCard from "../FileCard";
 import PreviewImage from "../PreviewImage";
 import FileDropzone from "../FileDropzone";
@@ -12,18 +12,27 @@ interface Props {
   onUpload?: (files: FileList | File[]) => void;
   error?: string | null;
   useSharedFiles?: boolean;
+  onApiError?: (e: unknown) => boolean;
+  tabFilename?: string;
+  onTabLoadingChange?: (v: boolean) => void;
+  onTabDownloadIdChange?: (v: string | null) => void;
 }
 
-export default function SplitView({ files, removeFile, thumbnailSize, onUpload, error, useSharedFiles }: Props) {
+function SplitView({ files, removeFile, thumbnailSize, onUpload, error, useSharedFiles, onApiError, tabFilename, onTabLoadingChange, onTabDownloadIdChange }: Props, ref: React.Ref<TabActions>) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [rangesText, setRangesText] = useState("");
-  const [filename, setFilename] = useState("");
   const [loading, setLoading] = useState(false);
-  const [downloadId, setDownloadId] = useState<string | null>(null);
-  const [resultFilename, setResultFilename] = useState("");
   const [pageVersions, setPageVersions] = useState<Record<string, number>>({});
+  const [rangesText, setRangesText] = useState("");
 
   const selected = files.find((f) => f.id === selectedId);
+
+  useEffect(() => {
+    if (files.length > 0) {
+      if (!selectedId || !files.find((f) => f.id === selectedId)) {
+        setSelectedId(files[0].id);
+      }
+    }
+  }, [files, selectedId]);
 
   const appendToRanges = (page: number) => {
     const current = rangesText.trim();
@@ -54,6 +63,7 @@ export default function SplitView({ files, removeFile, thumbnailSize, onUpload, 
       const key = `${selectedId}-${pageNum}`;
       setPageVersions((prev) => ({ ...prev, [key]: (prev[key] ?? 0) + 1 }));
     } catch (e) {
+      if (onApiError?.(e)) return;
       alert(e instanceof Error ? e.message : "Rotation failed");
     }
   };
@@ -67,8 +77,7 @@ export default function SplitView({ files, removeFile, thumbnailSize, onUpload, 
 
   const handleSplit = async () => {
     if (!selectedId) return;
-    const ranges = rangesText
-      .split(",")
+    const ranges = rangesText.split(",")
       .map((s) => s.trim())
       .filter(Boolean)
       .map((part) => {
@@ -86,18 +95,28 @@ export default function SplitView({ files, removeFile, thumbnailSize, onUpload, 
     }
 
     setLoading(true);
-    setDownloadId(null);
-    setResultFilename("");
+    onTabLoadingChange?.(true);
+    onTabDownloadIdChange?.(null);
     try {
-      const result = await splitFile(selectedId, ranges, filename || undefined);
-      setDownloadId(result.download_id);
-      setResultFilename(result.filename);
+      const result = await splitFile(selectedId, ranges, tabFilename || undefined);
+      onTabDownloadIdChange?.(result.download_id);
     } catch (e) {
+      if (onApiError?.(e)) return;
       alert(e instanceof Error ? e.message : "Split failed");
     } finally {
       setLoading(false);
+      onTabLoadingChange?.(false);
     }
   };
+
+  const canSplit = rangesText.trim().length > 0 && selected != null;
+
+  useImperativeHandle(ref, () => ({
+    action: handleSplit,
+    reset: () => { setSelectedId(null); setRangesText(""); },
+    hasPages: canSplit,
+    loading,
+  }), [canSplit, loading, handleSplit]);
 
   if (files.length === 0) {
     return (
@@ -144,9 +163,18 @@ export default function SplitView({ files, removeFile, thumbnailSize, onUpload, 
             <FileCard file={selected} onRemove={removeFile} selected />
           </div>
 
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-            Click thumbnails to add pages, or type ranges manually.
-          </p>
+          <div className="flex items-center gap-2 mb-3">
+            <input
+              type="text"
+              value={rangesText}
+              onChange={(e) => setRangesText(e.target.value)}
+              placeholder="1-3, 5, 7-9"
+              className="w-40 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <span className="text-xs text-gray-400 dark:text-gray-500">
+              Click pages to add, or type ranges
+            </span>
+          </div>
 
           <div
             className="grid gap-2 p-2 border border-gray-200 dark:border-gray-600 rounded-lg mb-4"
@@ -184,60 +212,10 @@ export default function SplitView({ files, removeFile, thumbnailSize, onUpload, 
             )}
           </div>
 
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-            Page ranges (e.g. <code className="dark:text-gray-200">1-3, 5, 7-9</code>)
-          </label>
-          <input
-            type="text"
-            value={rangesText}
-            onChange={(e) => setRangesText(e.target.value)}
-            placeholder="1-3, 5, 7-9"
-            className="w-full max-w-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            Max page: {selected.page_count}
-          </p>
-
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1 mt-4">
-            Output filename
-          </label>
-          <input
-            type="text"
-            value={filename}
-            onChange={(e) => setFilename(e.target.value)}
-            placeholder="split.pdf"
-            className="w-full max-w-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-
-          <div className="flex gap-2 mt-4">
-            <button
-              onClick={() => { setSelectedId(null); setRangesText(""); setFilename(""); }}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 dark:text-gray-200 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              Back
-            </button>
-            <button
-              onClick={handleSplit}
-              disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
-              {loading ? "Splitting..." : "Split"}
-            </button>
-          </div>
-
-          {downloadId && (
-            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <p className="text-green-700 dark:text-green-300 text-sm mb-2">Split complete!</p>
-          <a
-            href={downloadUrl(downloadId, resultFilename || undefined)}
-            className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm transition-colors"
-          >
-            Download result
-          </a>
-            </div>
-          )}
         </div>
       )}
     </div>
   );
 }
+
+export default forwardRef(SplitView);

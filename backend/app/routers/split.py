@@ -26,7 +26,10 @@ async def split_endpoint(req: SplitRequest):
                 detail=f"Range [{start}, {end}] out of bounds (1-{page_count})",
             )
 
-    download_id = generate_id()
-    output_path = get_result_path(download_id)
-    split_pdf(path, req.ranges, output_path)
+    try:
+        download_id = generate_id()
+        output_path = get_result_path(download_id)
+        split_pdf(path, req.ranges, output_path)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Split failed: {e}")
     return ResultResponse(download_id=download_id, filename=req.filename)

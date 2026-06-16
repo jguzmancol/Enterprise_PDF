@@ -1,6 +1,6 @@
-import { useState, useMemo, useRef, useEffect } from "react";
-import type { FileInfo } from "../../types";
-import { mergePages, rotatePage, previewUrl, downloadUrl } from "../../api/client";
+import { useState, useMemo, useRef, useEffect, useImperativeHandle, forwardRef } from "react";
+import type { FileInfo, TabActions } from "../../types";
+import { mergePages, rotatePage, previewUrl } from "../../api/client";
 import PreviewImage from "../PreviewImage";
 import FileDropzone from "../FileDropzone";
 
@@ -11,6 +11,10 @@ interface Props {
   error?: string | null;
   useSharedFiles?: boolean;
   multiple?: boolean;
+  onApiError?: (e: unknown) => boolean;
+  tabFilename?: string;
+  onTabLoadingChange?: (v: boolean) => void;
+  onTabDownloadIdChange?: (v: string | null) => void;
 }
 
 interface PageEntry {
@@ -19,21 +23,17 @@ interface PageEntry {
   fileName: string;
 }
 
-export default function MergeView({ files, thumbnailSize, onUpload, error, useSharedFiles, multiple = true }: Props) {
+function MergeView({ files, thumbnailSize, onUpload, error, useSharedFiles, multiple = true, onApiError, onTabLoadingChange, onTabDownloadIdChange }: Props, ref: React.Ref<TabActions>) {
   const [loading, setLoading] = useState(false);
-  const [downloadId, setDownloadId] = useState<string | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
-  const [selected, setSelected] = useState<Set<number>>(new Set());
   const [order, setOrder] = useState<number[] | null>(null);
   const [pageVersions, setPageVersions] = useState<Record<string, number>>({});
-  const [filename, setFilename] = useState("");
   const prevFilesKey = useRef("");
 
   const filesKey = files.map((f) => f.id).join(",");
   useEffect(() => {
     if (prevFilesKey.current && prevFilesKey.current !== filesKey) {
       setOrder(null);
-      setSelected(new Set());
     }
     prevFilesKey.current = filesKey;
   }, [filesKey]);
@@ -49,6 +49,33 @@ export default function MergeView({ files, thumbnailSize, onUpload, error, useSh
   }, [files]);
 
   const displayOrder = order ?? allPages.map((_, i) => i);
+
+  const handleMerge = async () => {
+    setLoading(true);
+    onTabLoadingChange?.(true);
+    onTabDownloadIdChange?.(null);
+    try {
+      const filePages = displayOrder.map((i) => ({
+        file_id: allPages[i].fileId,
+        page: allPages[i].page,
+      }));
+      const result = await mergePages(filePages);
+      onTabDownloadIdChange?.(result.download_id);
+    } catch (e) {
+      if (onApiError?.(e)) return;
+      alert(e instanceof Error ? e.message : "Merge failed");
+    } finally {
+      setLoading(false);
+      onTabLoadingChange?.(false);
+    }
+  };
+
+  useImperativeHandle(ref, () => ({
+    action: handleMerge,
+    reset: () => setOrder(null),
+    hasPages: displayOrder.length > 0,
+    loading,
+  }), [displayOrder.length, loading, handleMerge]);
 
   if (files.length === 0) {
     return (
@@ -70,24 +97,8 @@ export default function MergeView({ files, thumbnailSize, onUpload, error, useSh
     );
   }
 
-  const toggleSelect = (idx: number) => {
-    const next = new Set(selected);
-    if (next.has(idx)) next.delete(idx);
-    else next.add(idx);
-    setSelected(next);
-  };
-
-  const deleteSelected = () => {
-    setOrder(displayOrder.filter((_, idx) => !selected.has(idx)));
-    setSelected(new Set());
-  };
-
-  const move = (idx: number, dir: -1 | 1) => {
-    const next = [...displayOrder];
-    const target = idx + dir;
-    if (target < 0 || target >= next.length) return;
-    [next[idx], next[target]] = [next[target], next[idx]];
-    setOrder(next);
+  const handleDeletePage = (idx: number) => {
+    setOrder(displayOrder.filter((_, i) => i !== idx));
   };
 
   const handleDragStart = (idx: number) => setDragIdx(idx);
@@ -109,6 +120,7 @@ export default function MergeView({ files, thumbnailSize, onUpload, error, useSh
       const key = `${fileId}-${page}`;
       setPageVersions((prev) => ({ ...prev, [key]: (prev[key] ?? 0) + 1 }));
     } catch (e) {
+      if (onApiError?.(e)) return;
       alert(e instanceof Error ? e.message : "Rotation failed");
     }
   };
@@ -119,28 +131,21 @@ export default function MergeView({ files, thumbnailSize, onUpload, error, useSh
     return `${previewUrl(fileId, page, thumbnailSize)}&v=${v}`;
   };
 
-  const handleMerge = async () => {
-    setLoading(true);
-    setDownloadId(null);
-    try {
-      const filePages = displayOrder.map((i) => ({
-        file_id: allPages[i].fileId,
-        page: allPages[i].page,
-      }));
-      const result = await mergePages(filePages);
-      setDownloadId(result.download_id);
-    } catch (e) {
-      alert(e instanceof Error ? e.message : "Merge failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div>
+      {!useSharedFiles && onUpload && (
+        <div className="mb-4">
+          <FileDropzone onUpload={onUpload} multiple={multiple} />
+          {error && (
+            <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
+              {error}
+            </div>
+          )}
+        </div>
+      )}
       <h2 className="text-lg font-semibold mb-3 dark:text-gray-100">Merge PDFs</h2>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        All pages from your uploaded files. Reorder, select, and remove
+        All pages from your uploaded files. Drag to reorder, remove
         unwanted pages, then merge.
       </p>
 
@@ -150,7 +155,6 @@ export default function MergeView({ files, thumbnailSize, onUpload, error, useSh
       >
         {displayOrder.map((pageIdx, idx) => {
           const entry = allPages[pageIdx];
-          const isSelected = selected.has(idx);
           return (
               <div
                 key={`${entry.fileId}-${entry.page}-${idx}`}
@@ -158,12 +162,9 @@ export default function MergeView({ files, thumbnailSize, onUpload, error, useSh
                 onDragStart={() => handleDragStart(idx)}
                 onDragOver={(e) => handleDragOver(e, idx)}
                 onDragEnd={handleDragEnd}
-                onClick={() => toggleSelect(idx)}
                 className={`relative border rounded-lg p-1 cursor-pointer transition-colors ${
                   dragIdx === idx
                     ? "border-blue-400 opacity-50"
-                    : isSelected
-                    ? "border-blue-500 ring-2 ring-blue-300"
                     : "border-gray-200 dark:border-gray-600 hover:border-blue-200 dark:hover:border-blue-500"
                 }`}
               >
@@ -171,40 +172,34 @@ export default function MergeView({ files, thumbnailSize, onUpload, error, useSh
                   <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
                     {idx + 1}
                   </span>
-                  <div className="flex gap-0.5">
+                  <div className="flex gap-1">
                     <button
-                      onClick={(e) => { e.stopPropagation(); move(idx, -1); }}
-                      disabled={idx === 0}
-                      className="text-[10px] text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200 disabled:opacity-30"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRotate(entry.fileId, entry.page);
+                      }}
+                      className="w-6 h-6 rounded-full bg-white/80 dark:bg-gray-700/80 hover:bg-white dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 flex items-center justify-center text-xs text-gray-600 dark:text-gray-300 shadow-sm transition-colors"
+                      title="Rotate 90°"
                     >
-                      &#9650;
+                      &#8635;
                     </button>
                     <button
-                      onClick={(e) => { e.stopPropagation(); move(idx, 1); }}
-                      disabled={idx === displayOrder.length - 1}
-                      className="text-[10px] text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:text-gray-200 disabled:opacity-30"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeletePage(idx);
+                      }}
+                      className="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 border border-red-400 flex items-center justify-center text-xs text-white shadow-sm transition-colors"
+                      title="Remove"
                     >
-                      &#9660;
+                      &#10005;
                     </button>
                   </div>
                 </div>
-                <div className="relative">
-                  <PreviewImage
-                    src={getPreviewSrc(entry.fileId, entry.page)}
-                    alt={`${entry.fileName} - page ${entry.page}`}
-                    size={thumbnailSize}
-                  />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRotate(entry.fileId, entry.page);
-                    }}
-                    className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-white/80 dark:bg-gray-700/80 hover:bg-white dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 flex items-center justify-center text-xs text-gray-600 dark:text-gray-300 shadow-sm transition-colors"
-                    title="Rotate 90°"
-                  >
-                    &#8635;
-                  </button>
-                </div>
+                <PreviewImage
+                  src={getPreviewSrc(entry.fileId, entry.page)}
+                  alt={`${entry.fileName} - page ${entry.page}`}
+                  size={thumbnailSize}
+                />
                 <span className="block text-[10px] text-center text-gray-400 dark:text-gray-500 mt-0.5 truncate" title={`${entry.fileName} p.${entry.page}`}>
                   {entry.fileName} p.{entry.page}
                 </span>
@@ -213,53 +208,8 @@ export default function MergeView({ files, thumbnailSize, onUpload, error, useSh
         })}
       </div>
 
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mt-4 mb-1">
-        Output filename
-      </label>
-      <input
-        type="text"
-        value={filename}
-        onChange={(e) => setFilename(e.target.value)}
-        placeholder="merged.pdf"
-        className="w-full max-w-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-      />
-
-      <div className="flex gap-2 mt-4">
-        <button
-          onClick={() => { setOrder(null); setSelected(new Set()); }}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 dark:text-gray-200 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-        >
-          Reset
-        </button>
-        {selected.size > 0 && (
-          <button
-            onClick={deleteSelected}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors"
-          >
-            Delete selected ({selected.size})
-          </button>
-        )}
-        <button
-          onClick={handleMerge}
-          disabled={loading || displayOrder.length === 0}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-        >
-          {loading ? "Merging..." : "Merge pages"}
-        </button>
-      </div>
-
-      {downloadId && (
-        <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-          <p className="text-green-700 dark:text-green-300 text-sm mb-2">Merge complete!</p>
-          <a
-            href={downloadUrl(downloadId, filename || undefined)}
-            download
-            className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm transition-colors"
-          >
-            Download merged PDF
-          </a>
-        </div>
-      )}
     </div>
   );
 }
+
+export default forwardRef(MergeView);

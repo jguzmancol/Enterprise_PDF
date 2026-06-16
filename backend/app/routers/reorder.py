@@ -25,7 +25,10 @@ async def reorder_endpoint(req: ReorderRequest):
                 detail=f"Page {p} out of range (1-{page_count})",
             )
 
-    download_id = generate_id()
-    output_path = get_result_path(download_id)
-    reorder_pages(path, req.order, output_path)
+    try:
+        download_id = generate_id()
+        output_path = get_result_path(download_id)
+        reorder_pages(path, req.order, output_path)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Reorder failed: {e}")
     return ResultResponse(download_id=download_id, filename="reordered.pdf")
