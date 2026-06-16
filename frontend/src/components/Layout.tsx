@@ -80,8 +80,9 @@ export default function Layout({
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm shrink-0 relative">
         <div className="px-6 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-blue-600 dark:text-blue-400">
-            PDF Tool
+          <h1 className="text-xl font-bold">
+            <a href="https://jgfx.pro" className="text-blue-600 dark:text-blue-400 hover:underline">JGFX</a>
+            <span className="text-gray-800 dark:text-gray-200"> Enterprise PDF</span>
           </h1>
           <div className="flex items-center gap-3">
             <div className="relative" ref={panelRef}>
