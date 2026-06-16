@@ -7,6 +7,8 @@ services:
       - MAX_UPLOAD_MB=20
       - SESSION_TTL_MINUTES=5
     restart: unless-stopped
+    networks:
+      - jgfx-net
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 15s
@@ -27,6 +29,12 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+    networks:
+      - jgfx-net
 
 volumes:
   session_data:
+
+networks:
+  jgfx-net:
+    external: true
