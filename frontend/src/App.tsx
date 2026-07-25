@@ -129,7 +129,7 @@ export default function App() {
     }
   }, [useSharedFiles, currentTab, updateTabFiles]);
 
-  const handleApiError = useCallback((e: unknown) => {
+  const handleApiError = useCallback(() => {
     return false;
   }, []);
 
