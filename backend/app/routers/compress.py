@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, HTTPException
 
 from app.schemas import CompressRequest, ResultResponse
@@ -19,7 +20,7 @@ async def compress_endpoint(req: CompressRequest):
     try:
         download_id = generate_id()
         output_path = get_result_path(download_id)
-        compress_pdf(path, output_path, level=req.level)
+        await asyncio.to_thread(compress_pdf, path, output_path, level=req.level)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Compression failed: {e}")
     return ResultResponse(download_id=download_id, filename="compressed.pdf")

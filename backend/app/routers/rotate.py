@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, HTTPException
 
 from app.schemas import RotateRequest, RotatePageRequest, ResultResponse
@@ -16,7 +17,7 @@ async def rotate_endpoint(req: RotateRequest):
     if req.angle not in (90, 180, 270):
         raise HTTPException(status_code=400, detail="Angle must be 90, 180, or 270")
 
-    page_count = get_page_count(path)
+    page_count = await asyncio.to_thread(get_page_count, path)
     for p in req.pages:
         if p < 1 or p > page_count:
             raise HTTPException(
@@ -27,7 +28,7 @@ async def rotate_endpoint(req: RotateRequest):
     try:
         download_id = generate_id()
         output_path = get_result_path(download_id)
-        rotate_pages(path, req.pages, req.angle, output_path)
+        await asyncio.to_thread(rotate_pages, path, req.pages, req.angle, output_path)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Rotation failed: {e}")
     return ResultResponse(download_id=download_id, filename="rotated.pdf")
@@ -39,14 +40,14 @@ async def rotate_page_endpoint(req: RotatePageRequest):
     if not path:
         raise HTTPException(status_code=404, detail="File not found")
 
-    page_count = get_page_count(path)
+    page_count = await asyncio.to_thread(get_page_count, path)
     if req.page < 1 or req.page > page_count:
         raise HTTPException(
             status_code=400,
             detail=f"Page {req.page} out of range (1-{page_count})",
         )
     try:
-        rotate_page_inplace(path, req.page)
+        await asyncio.to_thread(rotate_page_inplace, path, req.page)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Page rotation failed: {e}")
     return {"success": True}

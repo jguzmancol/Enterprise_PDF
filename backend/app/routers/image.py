@@ -1,3 +1,4 @@
+import asyncio
 import os
 from fastapi import APIRouter, HTTPException, UploadFile, File
 
@@ -48,7 +49,7 @@ async def to_pdf_endpoint(files: list[UploadFile] = File(...)):
     download_id = generate_id()
     output_path = get_result_path(download_id)
     try:
-        images_to_pdf(temp_paths, output_path)
+        await asyncio.to_thread(images_to_pdf, temp_paths, output_path)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     finally:

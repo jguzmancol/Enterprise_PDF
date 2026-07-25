@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, HTTPException
 
 from app.schemas import MergeRequest, MergePagesRequest, ResultResponse
@@ -19,7 +20,7 @@ async def merge_endpoint(req: MergeRequest):
     try:
         download_id = generate_id()
         output_path = get_result_path(download_id)
-        merge_pdfs(paths, output_path)
+        await asyncio.to_thread(merge_pdfs, paths, output_path)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Merge failed: {e}")
     return ResultResponse(download_id=download_id, filename="merged.pdf")
@@ -34,7 +35,7 @@ async def merge_pages_endpoint(req: MergePagesRequest):
             raise HTTPException(status_code=404, detail=f"File {fp.file_id} not found")
         if fp.page < 1:
             raise HTTPException(status_code=400, detail="Page must be >= 1")
-        page_count = get_page_count(path)
+        page_count = await asyncio.to_thread(get_page_count, path)
         if fp.page > page_count:
             raise HTTPException(
                 status_code=400,
@@ -45,7 +46,7 @@ async def merge_pages_endpoint(req: MergePagesRequest):
     try:
         download_id = generate_id()
         output_path = get_result_path(download_id)
-        merge_specific_pages(file_pages, output_path)
+        await asyncio.to_thread(merge_specific_pages, file_pages, output_path)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Merge failed: {e}")
     return ResultResponse(download_id=download_id, filename="merged.pdf")

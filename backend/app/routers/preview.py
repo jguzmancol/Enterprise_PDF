@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 
@@ -15,7 +16,7 @@ async def preview_page(file_id: str, page: int, w: int = Query(None, ge=1)):
     if not path:
         raise HTTPException(status_code=404, detail="File not found")
     try:
-        png_data = render_page(path, page - 1, width=w)
+        png_data = await asyncio.to_thread(render_page, path, page - 1, width=w)
         return Response(
             content=png_data,
             media_type="image/png",

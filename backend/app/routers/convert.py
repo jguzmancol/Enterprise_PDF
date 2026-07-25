@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, HTTPException
 
 from app.schemas import FileIdRequest, ResultResponse
@@ -15,7 +16,7 @@ async def to_docx_endpoint(req: FileIdRequest):
     try:
         download_id = generate_id()
         output_path = get_result_path(download_id, ext=".docx")
-        pdf_to_docx(path, output_path)
+        await asyncio.to_thread(pdf_to_docx, path, output_path)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"DOCX conversion failed: {e}")
     return ResultResponse(download_id=download_id, filename="converted.docx")
@@ -29,7 +30,7 @@ async def to_xlsx_endpoint(req: FileIdRequest):
     try:
         download_id = generate_id()
         output_path = get_result_path(download_id, ext=".xlsx")
-        pdf_to_xlsx(path, output_path)
+        await asyncio.to_thread(pdf_to_xlsx, path, output_path)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"XLSX conversion failed: {e}")
     return ResultResponse(download_id=download_id, filename="converted.xlsx")

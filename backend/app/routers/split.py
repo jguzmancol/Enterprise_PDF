@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, HTTPException
 
 from app.schemas import SplitRequest, ResultResponse
@@ -13,7 +14,7 @@ async def split_endpoint(req: SplitRequest):
     if not path:
         raise HTTPException(status_code=404, detail="File not found")
 
-    page_count = get_page_count(path)
+    page_count = await asyncio.to_thread(get_page_count, path)
     for r in req.ranges:
         if len(r) != 2:
             raise HTTPException(status_code=400, detail="Each range must have start and end")
@@ -29,7 +30,7 @@ async def split_endpoint(req: SplitRequest):
     try:
         download_id = generate_id()
         output_path = get_result_path(download_id)
-        split_pdf(path, req.ranges, output_path)
+        await asyncio.to_thread(split_pdf, path, req.ranges, output_path)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Split failed: {e}")
     return ResultResponse(download_id=download_id, filename=req.filename)

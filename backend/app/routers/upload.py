@@ -1,3 +1,4 @@
+import asyncio
 import os
 from fastapi import APIRouter, UploadFile, File, HTTPException
 
@@ -38,7 +39,7 @@ async def upload_files(files: list[UploadFile] = File(...)):
         file_id = generate_id()
         saved_path = save_upload(file_id, f.filename or "unnamed.pdf", content)
         try:
-            page_count = get_page_count(saved_path)
+            page_count = await asyncio.to_thread(get_page_count, saved_path)
         except Exception:
             os.remove(saved_path)
             raise HTTPException(
