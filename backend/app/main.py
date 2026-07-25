@@ -2,9 +2,13 @@ import asyncio
 import os
 import time
 import shutil
+import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+logger = logging.getLogger("uvicorn.error")
 
 from app.config import SESSIONS_DIR, PREVIEWS_DIR, SESSION_TTL_MINUTES, MAX_UPLOAD_MB
 from app.routers import upload, preview, merge, split, compress, rotate, reorder, download, image, convert
@@ -58,6 +62,23 @@ from fastapi.responses import JSONResponse
 @app.get("/api/health")
 async def health():
     return JSONResponse({"status": "ok", "max_upload_mb": MAX_UPLOAD_MB})
+
+
+@app.get("/api/routes")
+async def list_routes():
+    routes = []
+    for route in app.routes:
+        if hasattr(route, "methods"):
+            routes.append({"path": route.path, "methods": list(route.methods)})
+    return JSONResponse(routes)
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    response = await call_next(request)
+    if response.status_code >= 400:
+        logger.warning(f"{response.status_code} {request.method} {request.url.path}")
+    return response
 
 
 app.include_router(upload.router, prefix="/api", tags=["upload"])
