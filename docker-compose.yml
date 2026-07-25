@@ -1,11 +1,11 @@
 services:
-  backend:
+  pdf-backend:
     build: ./backend
     volumes:
       - session_data:/tmp/sessions
     environment:
       - MAX_UPLOAD_MB=20
-      - SESSION_TTL_MINUTES=5
+      - SESSION_TTL_MINUTES=30
     restart: unless-stopped
     networks:
       - jgfx-net
@@ -21,7 +21,7 @@ services:
     ports:
       - "8081:80"
     depends_on:
-      backend:
+      pdf-backend:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
