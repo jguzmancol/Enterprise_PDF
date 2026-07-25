@@ -130,18 +130,8 @@ export default function App() {
   }, [useSharedFiles, currentTab, updateTabFiles]);
 
   const handleApiError = useCallback((e: unknown) => {
-    const msg = e instanceof Error ? e.message : String(e);
-    if (msg.toLowerCase().includes("not found")) {
-      setUploadedAt(null);
-      setFileTtl(0);
-      setTimeLeft(null);
-      if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
-      setError("Session expired. The files are no longer available. Please upload again.");
-      clearFiles();
-      return true;
-    }
     return false;
-  }, [clearFiles]);
+  }, []);
 
   return (
     <Layout
