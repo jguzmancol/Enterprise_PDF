@@ -99,6 +99,15 @@ cd backend && python -m pytest tests/ -v
 - **Error handling**: todos los routers envuelven operaciones PDF en try/except con mensajes claros. `client.ts` usa `parseError()` que intenta parsear JSON (campo `detail`) antes de caer a texto plano.
 - **Healthchecks**: backend tiene `GET /api/health`, verificado cada 15s por Docker. frontend usa `nginx -t` cada 30s.
 
+## Geo‑bloqueo (Colombia)
+
+- Implementado via Cloudflare + Nginx `map` en `nginx.conf`.
+- Cloudflare envía el header `CF-IPCountry` automáticamente cuando el DNS está proxied (naranjita).
+- `nginx.conf` usa `map $http_cf_ipcountry $block` — permite solo `CO`, bloquea cualquier otro valor o ausencia del header.
+- Incluye `set_real_ip_from 0.0.0.0/0` + `real_ip_header CF-Connecting-IP` para restaurar IP real del visitante.
+- Si el dominio **no** está detrás de Cloudflare, todo el tráfico será bloqueado (403).
+- Cloudflare también protege contra spoofing del header porque solo CF puede inyectar `CF-IPCountry` si el DNS está proxied.
+
 ## Convenciones de código
 
 - Backend: routers delgados → lógica en `services/pdf_service.py`. Cada operación PDF envuelta en try/except.
