@@ -3,10 +3,19 @@ import os
 import time
 import shutil
 import logging
+from logging.handlers import RotatingFileHandler
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+
+LOG_DIR = "/app/logs"
+os.makedirs(LOG_DIR, exist_ok=True)
+
+handler = RotatingFileHandler(os.path.join(LOG_DIR, "backend.log"), maxBytes=10_485_760, backupCount=5)
+handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
+logging.getLogger().addHandler(handler)
+logging.getLogger().setLevel(logging.INFO)
 
 logger = logging.getLogger("uvicorn.error")
 

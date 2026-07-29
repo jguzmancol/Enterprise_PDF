@@ -3,6 +3,7 @@ services:
     build: ./backend
     volumes:
       - session_data:/tmp/sessions
+      - ./logs/backend:/app/logs
     environment:
       - MAX_UPLOAD_MB=20
       - SESSION_TTL_MINUTES=30
@@ -20,6 +21,8 @@ services:
     build: ./frontend
     ports:
       - "8081:80"
+    volumes:
+      - ./logs/nginx:/var/log/nginx
     depends_on:
       pdf-backend:
         condition: service_healthy

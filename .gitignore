@@ -23,3 +23,6 @@ layout*.png
 
 # Oencode
 .opencode/
+
+# Logs
+logs/
