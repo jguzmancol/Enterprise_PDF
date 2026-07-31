@@ -10,6 +10,10 @@ import RotateView from "./components/views/RotateView";
 import ReorderView from "./components/views/ReorderView";
 import ImageToPdfView from "./components/views/ImageToPdfView";
 import OfficeView from "./components/views/OfficeView";
+import WatermarkView from "./components/views/WatermarkView";
+import PageNumbersView from "./components/views/PageNumbersView";
+import ProtectView from "./components/views/ProtectView";
+import PdfToImageView from "./components/views/PdfToImageView";
 
 const TAB_KEYS: Record<string, string> = {
   "/merge": "merge",
@@ -19,6 +23,10 @@ const TAB_KEYS: Record<string, string> = {
   "/rotate": "rotate",
   "/reorder": "reorder",
   "/image-to-pdf": "image-to-pdf",
+  "/watermark": "watermark",
+  "/page-numbers": "page-numbers",
+  "/protect": "protect",
+  "/pdf-to-image": "pdf-to-image",
 };
 
 function tabKeyFromPath(path: string): string {
@@ -181,6 +189,22 @@ export default function App() {
           element={<ReorderView ref={tabActionsRef} files={files} removeFile={removeFile} thumbnailSize={thumbnailSize} onUpload={handleUpload} error={error} useSharedFiles={useSharedFiles} onApiError={handleApiError} tabFilename={tabFilename} onTabLoadingChange={setTabLoading} onTabDownloadIdChange={setTabDownloadId} />}
         />
         <Route path="/image-to-pdf" element={<ImageToPdfView />} />
+        <Route
+          path="/watermark"
+          element={<WatermarkView ref={tabActionsRef} files={files} onUpload={handleUpload} error={error} useSharedFiles={useSharedFiles} onApiError={handleApiError} tabFilename={tabFilename} onTabLoadingChange={setTabLoading} onTabDownloadIdChange={setTabDownloadId} />}
+        />
+        <Route
+          path="/page-numbers"
+          element={<PageNumbersView ref={tabActionsRef} files={files} onUpload={handleUpload} error={error} useSharedFiles={useSharedFiles} onApiError={handleApiError} tabFilename={tabFilename} onTabLoadingChange={setTabLoading} onTabDownloadIdChange={setTabDownloadId} />}
+        />
+        <Route
+          path="/protect"
+          element={<ProtectView ref={tabActionsRef} files={files} onUpload={handleUpload} error={error} useSharedFiles={useSharedFiles} onApiError={handleApiError} tabFilename={tabFilename} onTabLoadingChange={setTabLoading} onTabDownloadIdChange={setTabDownloadId} />}
+        />
+        <Route
+          path="/pdf-to-image"
+          element={<PdfToImageView ref={tabActionsRef} files={files} onUpload={handleUpload} error={error} useSharedFiles={useSharedFiles} onApiError={handleApiError} tabFilename={tabFilename} onTabLoadingChange={setTabLoading} onTabDownloadIdChange={setTabDownloadId} />}
+        />
       </Routes>
     </Layout>
   );

@@ -73,6 +73,42 @@ export async function toPdf(files) {
 export function mergePages(filePages) {
     return post(`${BASE}/merge-pages`, { file_pages: filePages });
 }
+export function textWatermark(fileId, opts) {
+    return post(`${BASE}/watermark-text`, {
+        file_id: fileId,
+        ...opts,
+    });
+}
+export async function imageWatermark(fileId, imageFile, opacity, position) {
+    const form = new FormData();
+    form.append("file_id", fileId);
+    form.append("opacity", String(opacity));
+    form.append("position", position);
+    form.append("image", imageFile);
+    const res = await fetch(`${BASE}/watermark-image`, { method: "POST", body: form });
+    if (!res.ok)
+        throw new Error(await parseError(res));
+    return res.json();
+}
+export function addPageNumbers(fileId, opts) {
+    return post(`${BASE}/page-numbers`, {
+        file_id: fileId,
+        ...opts,
+    });
+}
+export function protectFile(fileId, opts) {
+    return post(`${BASE}/protect`, { file_id: fileId, ...opts });
+}
+export function unlockFile(fileId, password) {
+    return post(`${BASE}/unlock`, { file_id: fileId, password });
+}
+export function pdfToImages(fileId, format, dpi) {
+    return post(`${BASE}/pdf-to-image`, {
+        file_id: fileId,
+        format,
+        dpi,
+    });
+}
 export function downloadUrl(downloadId, filename) {
     const base = `${BASE}/download/${downloadId}`;
     if (filename) {

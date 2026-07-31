@@ -20,7 +20,22 @@ logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger("uvicorn.error")
 
 from app.config import SESSIONS_DIR, PREVIEWS_DIR, SESSION_TTL_MINUTES, MAX_UPLOAD_MB
-from app.routers import upload, preview, merge, split, compress, rotate, reorder, download, image, convert
+from app.routers import (
+    upload,
+    preview,
+    merge,
+    split,
+    compress,
+    rotate,
+    reorder,
+    download,
+    image,
+    convert,
+    watermark,
+    page_numbers,
+    protect,
+    pdf_to_image,
+)
 
 
 def cleanup_old_files(directory: str, ttl_seconds: int):
@@ -100,3 +115,7 @@ app.include_router(reorder.router, prefix="/api", tags=["reorder"])
 app.include_router(download.router, prefix="/api", tags=["download"])
 app.include_router(image.router, prefix="/api", tags=["image"])
 app.include_router(convert.router, prefix="/api", tags=["convert"])
+app.include_router(watermark.router, prefix="/api", tags=["watermark"])
+app.include_router(page_numbers.router, prefix="/api", tags=["page-numbers"])
+app.include_router(protect.router, prefix="/api", tags=["protect"])
+app.include_router(pdf_to_image.router, prefix="/api", tags=["pdf-to-image"])

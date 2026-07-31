@@ -81,6 +81,80 @@ export function mergePages(filePages: FilePage[]) {
   return post<ResultResponse>(`${BASE}/merge-pages`, { file_pages: filePages });
 }
 
+export function textWatermark(
+  fileId: string,
+  opts: {
+    text: string;
+    opacity: number;
+    font_size: number;
+    color: number[];
+    rotation: number;
+    position: string;
+  },
+) {
+  return post<ResultResponse>(`${BASE}/watermark-text`, {
+    file_id: fileId,
+    ...opts,
+  });
+}
+
+export async function imageWatermark(
+  fileId: string,
+  imageFile: File,
+  opacity: number,
+  position: string,
+) {
+  const form = new FormData();
+  form.append("file_id", fileId);
+  form.append("opacity", String(opacity));
+  form.append("position", position);
+  form.append("image", imageFile);
+  const res = await fetch(`${BASE}/watermark-image`, { method: "POST", body: form });
+  if (!res.ok) throw new Error(await parseError(res));
+  return res.json() as Promise<ResultResponse>;
+}
+
+export function addPageNumbers(
+  fileId: string,
+  opts: {
+    template: string;
+    position: string;
+    font_size: number;
+    start_from: number;
+    margin: number;
+    color: number[];
+  },
+) {
+  return post<ResultResponse>(`${BASE}/page-numbers`, {
+    file_id: fileId,
+    ...opts,
+  });
+}
+
+export function protectFile(
+  fileId: string,
+  opts: {
+    password: string;
+    allow_print: boolean;
+    allow_copy: boolean;
+    allow_modify: boolean;
+  },
+) {
+  return post<ResultResponse>(`${BASE}/protect`, { file_id: fileId, ...opts });
+}
+
+export function unlockFile(fileId: string, password: string) {
+  return post<ResultResponse>(`${BASE}/unlock`, { file_id: fileId, password });
+}
+
+export function pdfToImages(fileId: string, format: string, dpi: number) {
+  return post<ResultResponse>(`${BASE}/pdf-to-image`, {
+    file_id: fileId,
+    format,
+    dpi,
+  });
+}
+
 export function downloadUrl(downloadId: string, filename?: string) {
   const base = `${BASE}/download/${downloadId}`;
   if (filename) {

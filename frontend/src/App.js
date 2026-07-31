@@ -10,6 +10,10 @@ import RotateView from "./components/views/RotateView";
 import ReorderView from "./components/views/ReorderView";
 import ImageToPdfView from "./components/views/ImageToPdfView";
 import OfficeView from "./components/views/OfficeView";
+import WatermarkView from "./components/views/WatermarkView";
+import PageNumbersView from "./components/views/PageNumbersView";
+import ProtectView from "./components/views/ProtectView";
+import PdfToImageView from "./components/views/PdfToImageView";
 const TAB_KEYS = {
     "/merge": "merge",
     "/split": "split",
@@ -18,6 +22,10 @@ const TAB_KEYS = {
     "/rotate": "rotate",
     "/reorder": "reorder",
     "/image-to-pdf": "image-to-pdf",
+    "/watermark": "watermark",
+    "/page-numbers": "page-numbers",
+    "/protect": "protect",
+    "/pdf-to-image": "pdf-to-image",
 };
 function tabKeyFromPath(path) {
     return TAB_KEYS[path] || "merge";
@@ -120,21 +128,8 @@ export default function App() {
             updateTabFiles(currentTab, () => []);
         }
     }, [useSharedFiles, currentTab, updateTabFiles]);
-    const handleApiError = useCallback((e) => {
-        const msg = e instanceof Error ? e.message : String(e);
-        if (msg.toLowerCase().includes("not found")) {
-            setUploadedAt(null);
-            setFileTtl(0);
-            setTimeLeft(null);
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-                intervalRef.current = null;
-            }
-            setError("Session expired. The files are no longer available. Please upload again.");
-            clearFiles();
-            return true;
-        }
+    const handleApiError = useCallback(() => {
         return false;
-    }, [clearFiles]);
-    return (_jsx(Layout, { files: files, onUpload: handleUpload, error: error, onClearFiles: clearFiles, thumbnailSize: thumbnailSize, onThumbnailSizeChange: setThumbnailSize, useSharedFiles: useSharedFiles, onToggleSharedFiles: setUseSharedFiles, multiple: allowMultiple, timeLeft: timeLeft, tabActionsRef: tabActionsRef, tabFilename: tabFilename, onTabFilenameChange: setTabFilename, tabLoading: tabLoading, tabDownloadId: tabDownloadId, tabHasPages: files.length > 0, currentTab: currentTab, onDownload: () => { setTabDownloadId(null); setTabFilename(""); }, children: _jsxs(Routes, { children: [_jsx(Route, { path: "/", element: _jsx(Navigate, { to: "/merge", replace: true }) }), _jsx(Route, { path: "/merge", element: _jsx(MergeView, { ref: tabActionsRef, files: files, thumbnailSize: thumbnailSize, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, multiple: allowMultiple, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/split", element: _jsx(SplitView, { ref: tabActionsRef, files: files, removeFile: removeFile, thumbnailSize: thumbnailSize, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/compress", element: _jsx(CompressView, { ref: tabActionsRef, files: files, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/office", element: _jsx(OfficeView, { ref: tabActionsRef, files: files, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/rotate", element: _jsx(RotateView, { ref: tabActionsRef, files: files, thumbnailSize: thumbnailSize, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/reorder", element: _jsx(ReorderView, { ref: tabActionsRef, files: files, removeFile: removeFile, thumbnailSize: thumbnailSize, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/image-to-pdf", element: _jsx(ImageToPdfView, {}) })] }) }));
+    }, []);
+    return (_jsx(Layout, { files: files, onUpload: handleUpload, error: error, onClearFiles: clearFiles, thumbnailSize: thumbnailSize, onThumbnailSizeChange: setThumbnailSize, useSharedFiles: useSharedFiles, onToggleSharedFiles: setUseSharedFiles, multiple: allowMultiple, timeLeft: timeLeft, tabActionsRef: tabActionsRef, tabFilename: tabFilename, onTabFilenameChange: setTabFilename, tabLoading: tabLoading, tabDownloadId: tabDownloadId, tabHasPages: files.length > 0, currentTab: currentTab, onDownload: () => { setTabDownloadId(null); setTabFilename(""); }, children: _jsxs(Routes, { children: [_jsx(Route, { path: "/", element: _jsx(Navigate, { to: "/merge", replace: true }) }), _jsx(Route, { path: "/merge", element: _jsx(MergeView, { ref: tabActionsRef, files: files, thumbnailSize: thumbnailSize, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, multiple: allowMultiple, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/split", element: _jsx(SplitView, { ref: tabActionsRef, files: files, removeFile: removeFile, thumbnailSize: thumbnailSize, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/compress", element: _jsx(CompressView, { ref: tabActionsRef, files: files, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/office", element: _jsx(OfficeView, { ref: tabActionsRef, files: files, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/rotate", element: _jsx(RotateView, { ref: tabActionsRef, files: files, thumbnailSize: thumbnailSize, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/reorder", element: _jsx(ReorderView, { ref: tabActionsRef, files: files, removeFile: removeFile, thumbnailSize: thumbnailSize, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/image-to-pdf", element: _jsx(ImageToPdfView, {}) }), _jsx(Route, { path: "/watermark", element: _jsx(WatermarkView, { ref: tabActionsRef, files: files, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/page-numbers", element: _jsx(PageNumbersView, { ref: tabActionsRef, files: files, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/protect", element: _jsx(ProtectView, { ref: tabActionsRef, files: files, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) }), _jsx(Route, { path: "/pdf-to-image", element: _jsx(PdfToImageView, { ref: tabActionsRef, files: files, onUpload: handleUpload, error: error, useSharedFiles: useSharedFiles, onApiError: handleApiError, tabFilename: tabFilename, onTabLoadingChange: setTabLoading, onTabDownloadIdChange: setTabDownloadId }) })] }) }));
 }

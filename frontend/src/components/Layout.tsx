@@ -59,6 +59,10 @@ export default function Layout({
       reorder: "Apply new order",
       compress: "Compress",
       office: "Convert",
+      watermark: "Add watermark",
+      "page-numbers": "Add numbers",
+      protect: "Apply",
+      "pdf-to-image": "Convert to images",
     };
     return labels[tab] || "Process";
   };

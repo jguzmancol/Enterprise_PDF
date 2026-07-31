@@ -7,6 +7,10 @@ const tabs = [
     { to: "/office", label: "PDF→Office" },
     { to: "/reorder", label: "Reorder" },
     { to: "/image-to-pdf", label: "Img→PDF" },
+    { to: "/watermark", label: "Watermark" },
+    { to: "/page-numbers", label: "Page numbers" },
+    { to: "/protect", label: "Protect" },
+    { to: "/pdf-to-image", label: "PDF→Image" },
 ];
 export default function NavTabs() {
     return (_jsx("nav", { className: "bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700", children: _jsx("div", { className: "px-6 flex gap-1 overflow-x-auto", children: tabs.map((t) => (_jsx(NavLink, { to: t.to, className: ({ isActive }) => `px-4 py-3 text-sm font-medium border-b-2 transition-colors shrink-0 ${isActive

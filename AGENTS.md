@@ -29,7 +29,7 @@ PDF Tool — clon de ilovepdf con Docker, FastAPI, React + Vite, PyMuPDF.
 │       ├── main.py             # FastAPI, CORS, lifespan + cleanup task (session + previews), /api/health
 │       ├── config.py           # MAX_UPLOAD_MB, SESSION_TTL_MINUTES, MAX_FILES_PER_UPLOAD
 │       ├── schemas.py          # Pydantic models
-│       ├── routers/            # 13 endpoints (upload, preview, merge, merge-pages, split, compress, rotate, rotate-page, reorder, download, to-pdf, to-docx, to-xlsx)
+│       ├── routers/            # 19 endpoints (upload, preview, merge, merge-pages, split, compress, rotate, rotate-page, reorder, download, to-pdf, to-docx, to-xlsx, watermark-text, watermark-image, page-numbers, protect, unlock, pdf-to-image)
 │       └── services/           # pdf_service.py, image_service.py, file_service.py
 └── frontend/
     ├── .dockerignore
@@ -40,7 +40,7 @@ PDF Tool — clon de ilovepdf con Docker, FastAPI, React + Vite, PyMuPDF.
     └── src/
         ├── types.ts, api/client.ts   # parseError() para mensajes de error JSON
         ├── components/               # Layout (sin props split/compress), NavTabs, FileDropzone, FileCard, PreviewImage
-        └── components/views/         # MergeView, SplitView (ranges local), CompressView (level local), RotateView, ReorderView, ImageToPdfView
+        └── components/views/         # MergeView, SplitView (ranges local), CompressView (level local), RotateView, ReorderView, ImageToPdfView, WatermarkView, PageNumbersView, ProtectView, PdfToImageView
 ```
 
 ## Comandos
@@ -84,7 +84,13 @@ cd backend && python -m pytest tests/ -v
 | POST | `/api/to-pdf` | Convierte imágenes (PNG, JPEG, etc.) a PDF |
 | POST | `/api/to-docx` | Convierte PDF a Word (.docx) |
 | POST | `/api/to-xlsx` | Convierte PDF a Excel (.xlsx) |
-| GET | `/api/download/{id}` | Descarga resultado (acepta `?filename=` query param opcional) |
+| POST | `/api/watermark-text` | Marca de agua de texto (opacity, font_size, color RGB 0-255, rotation, position `center`/`tile`) |
+| POST | `/api/watermark-image` | Marca de agua con imagen (multipart: `file_id`, `opacity`, `position`, `image`). Opacity vía canal alpha RGBA |
+| POST | `/api/page-numbers` | Números de página (`template` con `{n}`/`{total}`, position top/bottom + left/center/right) |
+| POST | `/api/protect` | Protege con contraseña (AES-256, permisos print/copy/modify) |
+| POST | `/api/unlock` | Quita la contraseña (400 si el archivo no está protegido o la contraseña es incorrecta) |
+| POST | `/api/pdf-to-image` | Convierte páginas a PNG/JPG y empaqueta en ZIP (formato `png`/`jpg`, dpi 50-400) |
+| GET | `/api/download/{id}` | Descarga resultado (acepta `?filename=` query param opcional, media type dinámico por extensión `.pdf`/`.zip`/`.docx`/`.xlsx`) |
 
 ## Reglas del proyecto
 
@@ -128,7 +134,11 @@ cd backend && python -m pytest tests/ -v
 - RotateView: miniaturas con botón circular ↻ que rota 90° in-place cada clic (acumulativo: 90→180→270→0). Usa `POST /api/rotate-page`.
 - `rotate_page_inplace` usa temp file + `os.replace` porque PyMuPDF no permite guardar directamente sobre el original.
 - **Compress**: `compress_pdf` usa `doc.rewrite_images()` (requiere PyMuPDF ≥1.24) con `quality` + `dpi_target`/`dpi_threshold` según nivel 0-3, y SIEMPRE guarda con `garbage=4`. Con `garbage<4` los streams de imágenes reemplazadas quedan huérfanos y el archivo se infla. Si `rewrite_images` no existe, cae al save tradicional. `dpi_target` debe ser < `dpi_threshold`.
-- `download.py` usa `os.path.splitext(path)` para obtener la extensión real del archivo. Si el query param `filename` no tiene extensión, la añade automáticamente. Si no se envía `filename`, usa `"result.pdf"` por defecto.
-- Los archivos de resultado siempre se guardan con extensión `.pdf` en disco (por `file_service.py`).
+- `download.py` usa `os.path.splitext(path)` para obtener la extensión real del archivo. Si el query param `filename` no tiene extensión, la añade automáticamente. Si no se envía `filename`, usa `"result.pdf"` por defecto. Media type dinámico por extensión (`.pdf`/`.zip`/`.docx`/`.xlsx`), necesario para `/api/pdf-to-image` que genera `.zip`.
+- Los archivos de resultado siempre se guardan con extensión `.pdf` en disco (por `file_service.py`), excepto `/api/pdf-to-image` que usa `get_result_path(id, ext=".zip")`.
 - Cleanup task limpia tanto `SESSIONS_DIR` como `PREVIEWS_DIR` cada 60s.
+- **Watermark texto**: `insert_text` con `morph=(point, fitz.Matrix(rotation))` para rotar en `center`, `fill_opacity` para transparencia. Modo `tile` recorre la página en pasos de `font_size*4`.
+- **Watermark imagen**: `insert_image` no tiene parámetro de opacity → la transparencia se aplica premultiplicando el canal alpha de la imagen (RGBA PNG con Pillow) antes de insertarla.
+- **Page numbers**: el textbox para `insert_textbox` necesita altura ≥ `font_size*2` (con `font_size*1.6` el texto no cabe y no se renderiza). Colores siempre se normalizan 0-255 → 0-1 con `_normalize_color`.
+- **Protect**: `doc.save(encryption=PDF_ENCRYPT_AES_256, user_pw, owner_pw, permissions)`. `unlock` exige contraseña correcta vía `doc.authenticate(password)` si `needs_pass`; 400 si el archivo no está protegido.
 - **Conversión to-docx/to-xlsx**: `pdf2docx`/`pdfplumber` son CPU-bound y hambrientos de memoria. Por eso `run_conversion()` ejecuta la conversión en un **proceso separado** (`multiprocessing` con contexto `spawn`) con timeout duro (`CONVERT_TIMEOUT_SECONDS`, default 240s) — si cuelga, se hace `terminate()`/`kill()`. NUNCA correr pdf2docx en un thread del event loop: su trabajo en Python puro sostiene el GIL y bloquea el servidor entero (healthchecks incluidos). El router valida `MAX_CONVERT_PAGES` (default 150) antes de convertir. El timeout debe ser menor que `proxy_read_timeout` de Nginx (300s).

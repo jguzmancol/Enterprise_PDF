@@ -1,4 +1,5 @@
 import os
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
@@ -18,4 +19,14 @@ async def download_result(download_id: str, filename: str = "result.pdf"):
     if not user_ext and ext:
         filename = f"{filename}{ext}"
 
-    return FileResponse(path, media_type="application/pdf", filename=filename)
+    media_types = {
+        ".pdf": "application/pdf",
+        ".zip": "application/zip",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    }
+    media_type = media_types.get(ext.lower(), "application/octet-stream")
+    return FileResponse(path, media_type=media_type, filename=filename)

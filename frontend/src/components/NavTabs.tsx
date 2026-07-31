@@ -7,6 +7,10 @@ const tabs = [
   { to: "/office", label: "PDF→Office" },
   { to: "/reorder", label: "Reorder" },
   { to: "/image-to-pdf", label: "Img→PDF" },
+  { to: "/watermark", label: "Watermark" },
+  { to: "/page-numbers", label: "Page numbers" },
+  { to: "/protect", label: "Protect" },
+  { to: "/pdf-to-image", label: "PDF→Image" },
 ];
 
 export default function NavTabs() {
