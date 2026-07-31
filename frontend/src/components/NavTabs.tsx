@@ -3,16 +3,56 @@ import type { MouseEvent } from "react";
 import { NavLink } from "react-router-dom";
 
 const tabs = [
-  { to: "/merge", label: "Merge", desc: "Combine PDFs into a single document" },
-  { to: "/split", label: "Split", desc: "Extract pages into separate PDFs" },
-  { to: "/compress", label: "Compress", desc: "Reduce PDF file size" },
-  { to: "/office", label: "PDF→Office", desc: "Convert PDF to Word or Excel" },
-  { to: "/reorder", label: "Reorder", desc: "Change the page order" },
-  { to: "/image-to-pdf", label: "Img→PDF", desc: "Convert images to a PDF" },
-  { to: "/watermark", label: "Watermark", desc: "Add a text or image watermark" },
-  { to: "/page-numbers", label: "Page numbers", desc: "Add page numbers to every page" },
-  { to: "/protect", label: "Protect", desc: "Add or remove a PDF password" },
-  { to: "/pdf-to-image", label: "PDF→Image", desc: "Convert pages to PNG or JPG (ZIP)" },
+  {
+    to: "/merge",
+    label: "Merge",
+    desc: "Combine PDFs into one document. Accepts .pdf files. Upload files, drag to set the order, then click \"Merge pages\".",
+  },
+  {
+    to: "/split",
+    label: "Split",
+    desc: "Extract page ranges from a PDF into separate files. Accepts .pdf. Enter ranges like 1-3, then click \"Split PDF\".",
+  },
+  {
+    to: "/compress",
+    label: "Compress",
+    desc: "Reduce the size of a PDF. Accepts .pdf. Pick a compression level (Min to Max), then click \"Compress\".",
+  },
+  {
+    to: "/office",
+    label: "PDF→Office",
+    desc: "Convert a PDF to Word (.docx) or Excel (.xlsx). Accepts .pdf. Choose the format, then click \"Convert\".",
+  },
+  {
+    to: "/reorder",
+    label: "Reorder",
+    desc: "Change the page order of a PDF. Accepts .pdf. Drag the page thumbnails, then click \"Apply new order\".",
+  },
+  {
+    to: "/image-to-pdf",
+    label: "Img→PDF",
+    desc: "Convert images (PNG, JPG, WebP, BMP, TIFF) into a PDF. Upload the images and download the result.",
+  },
+  {
+    to: "/watermark",
+    label: "Watermark",
+    desc: "Add a text or image watermark over a PDF. Accepts .pdf. Choose text or an image, set the opacity, then click \"Add watermark\".",
+  },
+  {
+    to: "/page-numbers",
+    label: "Page numbers",
+    desc: "Add page numbers to a PDF. Accepts .pdf. Set the template and position, then click \"Add numbers\".",
+  },
+  {
+    to: "/protect",
+    label: "Protect",
+    desc: "Protect a PDF with a password (AES-256) or remove its password. Accepts .pdf. Enter the password, then click \"Apply\".",
+  },
+  {
+    to: "/pdf-to-image",
+    label: "PDF→Image",
+    desc: "Convert a PDF's pages to PNG or JPG images inside a ZIP. Accepts .pdf. Pick the format and DPI, then click \"Convert to images\".",
+  },
 ];
 
 interface Tip {
@@ -54,7 +94,7 @@ export default function NavTabs() {
       </nav>
       {tip && (
         <div
-          className="fixed z-50 px-3 py-1.5 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg shadow-lg pointer-events-none whitespace-nowrap"
+          className="fixed z-50 px-3 py-1.5 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg shadow-lg pointer-events-none max-w-[280px] leading-snug"
           style={{ left: tip.x, top: tip.y, transform: "translateX(-50%)" }}
         >
           {tip.text}
