@@ -7,6 +7,8 @@ services:
     environment:
       - MAX_UPLOAD_MB=20
       - SESSION_TTL_MINUTES=30
+      - CONVERT_TIMEOUT_SECONDS=240
+      - MAX_CONVERT_PAGES=150
     restart: unless-stopped
     networks:
       - jgfx-net
