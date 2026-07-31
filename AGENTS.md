@@ -127,6 +127,7 @@ cd backend && python -m pytest tests/ -v
 - CompressView maneja `level` como estado local. Los botones de nivel se renderizan dentro del componente.
 - RotateView: miniaturas con botón circular ↻ que rota 90° in-place cada clic (acumulativo: 90→180→270→0). Usa `POST /api/rotate-page`.
 - `rotate_page_inplace` usa temp file + `os.replace` porque PyMuPDF no permite guardar directamente sobre el original.
+- **Compress**: `compress_pdf` usa `doc.rewrite_images()` (requiere PyMuPDF ≥1.24) con `quality` + `dpi_target`/`dpi_threshold` según nivel 0-3, y SIEMPRE guarda con `garbage=4`. Con `garbage<4` los streams de imágenes reemplazadas quedan huérfanos y el archivo se infla. Si `rewrite_images` no existe, cae al save tradicional. `dpi_target` debe ser < `dpi_threshold`.
 - `download.py` usa `os.path.splitext(path)` para obtener la extensión real del archivo. Si el query param `filename` no tiene extensión, la añade automáticamente. Si no se envía `filename`, usa `"result.pdf"` por defecto.
 - Los archivos de resultado siempre se guardan con extensión `.pdf` en disco (por `file_service.py`).
 - Cleanup task limpia tanto `SESSIONS_DIR` como `PREVIEWS_DIR` cada 60s.

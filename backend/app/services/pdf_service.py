@@ -35,13 +35,30 @@ def split_pdf(file_path: str, ranges: list[list[int]], output_path: str):
 
 
 def compress_pdf(file_path: str, output_path: str, level: int = 2):
-    doc = fitz.open(file_path)
-    params = {
-        "garbage": min(level + 1, 4),
-        "deflate": level >= 1,
-        "clean": level >= 2,
+    """Recompress a PDF's images and clean unused objects. Level 0-3 (Min to Max).
+
+    Level 0: quality 85, resample only very high-res images.
+    Level 1: quality 75, resample high-res images.
+    Level 2: quality 60, resample medium+ resolution images.
+    Level 3: quality 45, resample most images.
+    """
+    settings = {
+        0: {"quality": 85, "dpi_threshold": 200, "dpi_target": 192},
+        1: {"quality": 75, "dpi_threshold": 150, "dpi_target": 144},
+        2: {"quality": 60, "dpi_threshold": 96, "dpi_target": 72},
+        3: {"quality": 45, "dpi_threshold": 72, "dpi_target": 50},
     }
-    doc.save(output_path, **params)
+    cfg = settings.get(level, settings[2])
+    doc = fitz.open(file_path)
+    if hasattr(doc, "rewrite_images"):
+        doc.rewrite_images(
+            dpi_threshold=cfg["dpi_threshold"],
+            dpi_target=cfg["dpi_target"],
+            quality=cfg["quality"],
+        )
+    # garbage=4 is required: rewrite_images leaves the old image streams as
+    # unreferenced objects, and only full reconstruction removes them.
+    doc.save(output_path, garbage=4, deflate=True, clean=True)
     doc.close()
 
 
